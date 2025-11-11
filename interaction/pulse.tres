@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://daj0ca334m7gi"]
+
+[ext_resource type="Shader" uid="uid://dyx0imuqvn5bw" path="res://interaction/pulse.gdshader" id="1_hrjgs"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_hrjgs")

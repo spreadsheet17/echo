@@ -1,0 +1,40 @@
+[gd_scene load_steps=8 format=3 uid="uid://c1t0mwmbh8mg7"]
+
+[ext_resource type="Shader" uid="uid://cijpl01o2glm3" path="res://sonar_reveal.gdshader" id="1_h2yge"]
+[ext_resource type="Script" uid="uid://bx2ed436pd66l" path="res://color_rect.gd" id="2_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://irptnlvyubvj" path="res://interaction/character.tscn" id="2_iteha"]
+[ext_resource type="PackedScene" uid="uid://bdjvy0j82qmnq" path="res://levels/apt_1.tscn" id="2_itqjm"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1bvp3"]
+shader = ExtResource("1_h2yge")
+shader_parameter/wave_position = Vector3(0, 0, 0)
+shader_parameter/wave_radius = 1.0
+shader_parameter/wave_thickness = 0.2
+shader_parameter/screen_size = Vector2(0, 0)
+
+[sub_resource type="Sky" id="Sky_0xm2m"]
+
+[sub_resource type="Environment" id="Environment_h2yge"]
+background_mode = 2
+sky = SubResource("Sky_0xm2m")
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.0
+ambient_light_energy = 0.0
+
+[node name="Node3D" type="Node3D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_1bvp3")
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_1bvp3")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_h2yge")
+
+[node name="apt1" parent="." instance=ExtResource("2_itqjm")]
+
+[node name="CharacterBody3D" parent="." instance=ExtResource("2_iteha")]
+transform = Transform3D(4.8, 0, 0, 0, 6.2400002, 0, 0, 0, 4.8, -22.9, 8.1, 0)

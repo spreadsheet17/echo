@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://baqss08egf3dm"]
+
+[ext_resource type="PackedScene" uid="uid://bps5mq2wr31ab" path="res://assets/Models pack psx/Models/models.fbx" id="1_lu8lw"]
+
+[node name="models" instance=ExtResource("1_lu8lw")]
