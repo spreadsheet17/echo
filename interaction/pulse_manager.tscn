@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7liipcmpyp3w"]
+
+[ext_resource type="Script" uid="uid://dmyifs58bpmrg" path="res://scripts/pulse_manager.gd" id="1_wgqyc"]
+
+[node name="PulseManager" type="Node3D"]
+script = ExtResource("1_wgqyc")
+pulse_scene_limit = 4
+pulse_speed = 100.0
+pulse_width = 2.0
+world_scale = 0.8
