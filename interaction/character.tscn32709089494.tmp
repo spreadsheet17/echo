@@ -1,9 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://irptnlvyubvj"]
+[gd_scene load_steps=8 format=3 uid="uid://irptnlvyubvj"]
 
 [ext_resource type="Script" uid="uid://buw6hmxqemr2v" path="res://scripts/character.gd" id="1_vyyir"]
 [ext_resource type="PackedScene" uid="uid://c7liipcmpyp3w" path="res://interaction/pulse_manager.tscn" id="2_7iv3k"]
 [ext_resource type="Shader" uid="uid://b3au8xbayjs4p" path="res://shaders/pulse2.gdshader" id="3_ajiqu"]
-[ext_resource type="PackedScene" uid="uid://1gb7rhls6v4r" path="res://interaction/pulse_hitbox.tscn" id="3_axrfw"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0guaa"]
 
@@ -13,8 +12,7 @@ shader = ExtResource("3_ajiqu")
 shader_parameter/pulse_count = 0
 shader_parameter/pulse_origins = PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/pulse_radii = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-shader_parameter/pulse_widths = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-shader_parameter/default_pulse_width = 10.0
+shader_parameter/pulse_width = 2.0
 shader_parameter/pulse_color = Color(1, 1, 1, 1)
 shader_parameter/world_scale = 0.01
 
@@ -40,11 +38,8 @@ transform = Transform3D(3.2, 0, 0, 0, 3.2, 0, 0, 0, 3.2, 0, 1.5608077, 0)
 [node name="PulseManager" parent="CameraPivot/Camera3D" instance=ExtResource("2_7iv3k")]
 quad_node_path = NodePath("MeshInstance3D")
 origin_node_path = NodePath("../../../CSGCylinder3D")
-pulse_scene_limit = 5
-max_distance = 10.0
-pulse_speed = 10.0
-spawn_interval = 5.0
-pulse_hitbox_scene = ExtResource("3_axrfw")
+pulse_speed = 5.0
+pulse_width = 3.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="CameraPivot/Camera3D/PulseManager"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
@@ -57,4 +52,3 @@ transform = Transform3D(3.2, 0, 0, 0, 3.2, 0, 0, 0, 3.2, 0, -0.3239412, 0)
 transform = Transform3D(3.2, 0, 0, 0, 3.2, 0, 0, 0, 3.2, 0, -0.3239412, 0)
 stream = SubResource("AudioStreamMicrophone_jaap6")
 autoplay = true
-bus = &"Mic"

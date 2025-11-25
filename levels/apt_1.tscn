@@ -1,9 +1,10 @@
-[gd_scene load_steps=29 format=3 uid="uid://bdjvy0j82qmnq"]
+[gd_scene load_steps=30 format=3 uid="uid://bdjvy0j82qmnq"]
 
 [ext_resource type="PackedScene" uid="uid://cj1t2l203ppnk" path="res://levels/apt1.glb" id="1_0qd8p"]
 [ext_resource type="ArrayMesh" uid="uid://cr5ldptq4mpvs" path="res://assets/Models pack psx/Models/Cube_116.res" id="2_xjsge"]
 [ext_resource type="ArrayMesh" uid="uid://msh6ic47hlgm" path="res://assets/Models pack psx/Models/Cube_119.res" id="3_mvmmv"]
 [ext_resource type="ArrayMesh" uid="uid://ctdu1jprstpax" path="res://assets/Models pack psx/Models/Cube_149.res" id="4_mvmmv"]
+[ext_resource type="Script" uid="uid://bsdl1loa5lijm" path="res://scripts/glowmesh.gd" id="5_3o4iq"]
 [ext_resource type="ArrayMesh" uid="uid://bl48j15yf7kuh" path="res://assets/Models pack psx/Models/Cube_156.res" id="5_7mct5"]
 [ext_resource type="ArrayMesh" uid="uid://ctxkyf3frthcr" path="res://assets/Models pack psx/Models/Cube_350.res" id="6_7mct5"]
 [ext_resource type="ArrayMesh" uid="uid://ccjdc62qrpitn" path="res://assets/Models pack psx/Models/Cube_134.res" id="7_haco6"]
@@ -96,6 +97,9 @@ shape = SubResource("ConcavePolygonShape3D_emplb")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Cube_002/StaticBody3D" index="0"]
 shape = SubResource("ConcavePolygonShape3D_lqfxr")
 
+[node name="Cube_006" parent="." index="5"]
+transform = Transform3D(0, 0, 20, 0, 10, 0, -4.9245, 0, 0, -59.83595, 10.097926, 9.935055)
+
 [node name="StaticBody3D" type="StaticBody3D" parent="Cube_006" index="0"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Cube_006/StaticBody3D" index="0"]
@@ -160,6 +164,7 @@ shape = SubResource("ConcavePolygonShape3D_7mct5")
 [node name="Cube149" type="MeshInstance3D" parent="." index="15"]
 transform = Transform3D(-1.7290304e-05, 395.55603, 1.7290304e-05, 0, -1.7290304e-05, 395.55603, 395.55603, 1.7290304e-05, 7.557832e-13, -48.800003, 5.2999997, -25.000002)
 mesh = ExtResource("4_mvmmv")
+script = ExtResource("5_3o4iq")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="Cube149" index="0"]
 
