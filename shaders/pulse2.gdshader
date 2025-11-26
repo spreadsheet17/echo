@@ -6,15 +6,12 @@ uniform int pulse_count = 0;
 
 uniform vec3 pulse_origins[16];
 uniform float pulse_radii[16];
-
-// NEW: per-pulse width array
 uniform float pulse_widths[16];
-
-// OLD: fallback width (used only if pulse_widths[i] == 0)
 uniform float default_pulse_width = 10.0;
 
-uniform vec4 pulse_color : source_color = vec4(1.0);
+uniform vec4 pulse_colors[16];
 uniform float world_scale = 0.95;
+uniform float emission_strength = 2.0; // <--- NEW
 
 uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
 uniform sampler2D DEPTH_TEXTURE : hint_depth_texture, filter_linear_mipmap;
@@ -23,23 +20,14 @@ varying mat4 CAMERA;
 
 
 // ----------------------------------------
-// sdf helpers
-// ----------------------------------------
 float sdSphere(vec3 p, float s) {
     return length(p) - s;
 }
 
-float when_lt(float a, float b) {
-    return max(sign(b - a), 0.0);
-}
-
-float when_gt(float a, float b) {
-    return max(sign(a - b), 0.0);
-}
+float when_lt(float a, float b) { return max(sign(b - a), 0.0); }
+float when_gt(float a, float b) { return max(sign(a - b), 0.0); }
 
 
-// ----------------------------------------
-// vertex
 // ----------------------------------------
 void vertex() {
     POSITION = vec4(VERTEX.xy, 1.0, 1.0);
@@ -48,37 +36,39 @@ void vertex() {
 
 
 // ----------------------------------------
-// fragment — NOW PER-PULSE WIDTH
-// ----------------------------------------
 void fragment() {
     vec4 original = textureLod(SCREEN_TEXTURE, SCREEN_UV, 0.0);
     float depth = textureLod(DEPTH_TEXTURE, SCREEN_UV, 0.0).x;
+
+    vec3 final_color = vec3(0.0);
+    float final_mix = 0.0;
 
     vec3 ndc = vec3(SCREEN_UV * 2.0 - 1.0, depth);
     vec4 world = CAMERA * INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
     vec3 world_position = world.xyz / world.w;
 
-    float best_contrib = 0.0;
-
     for (int i = 0; i < pulse_count; i++) {
-        vec3 origin = pulse_origins[i];
-        float radius = pulse_radii[i];
+        float width = pulse_widths[i];
+        if (width <= 0.0) width = default_pulse_width;
 
-        // get width: if array element is zero, use default width
-        float pwidth = pulse_widths[i];
-        if (pwidth <= 0.0) {
-            pwidth = default_pulse_width;
-        }
+        float dist = sdSphere((world_position - pulse_origins[i]) * world_scale,
+                              pulse_radii[i] * world_scale);
 
-        // SDF
-        float dist = sdSphere((world_position - origin) * world_scale, radius * world_scale);
-
-        float check = when_lt(dist, 0.0) * when_gt(dist, -pwidth);
-        float pct = abs(dist) / abs(pwidth);
+        float check = when_lt(dist, 0.0) * when_gt(dist, -width);
+        float pct = abs(dist) / abs(width);
         float mix_ratio = clamp(check - pct, 0.0, 1.0);
 
-        best_contrib = max(best_contrib, mix_ratio);
+        final_mix = max(final_mix, mix_ratio);
+
+        // blended color
+        final_color = mix(final_color, pulse_colors[i].rgb, mix_ratio);
     }
 
-    ALBEDO = mix(original.rgb, pulse_color.rgb, best_contrib);
+    // base scene
+    ALBEDO = final_color;
+
+    // emission only on pulse intensity
+    EMISSION = final_color * final_mix * emission_strength;
+
+    ALPHA = 1.0;
 }

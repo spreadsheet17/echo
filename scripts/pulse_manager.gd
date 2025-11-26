@@ -33,7 +33,6 @@ func _process(delta):
 	_last_emit += delta
 	_update_pulses(delta)
 	_upload_pulses_to_shader()
-
 # call this to emit a new pulse at origin_node.global_transform.origin
 func emit_wave():
 	if _origin_node == null:
@@ -43,7 +42,7 @@ func emit_wave():
 	_last_emit = 0.0
 
 	var origin_pos: Vector3 = _origin_node.global_transform.origin
-	_enqueue_pulse(origin_pos, 0.0, pulse_speed, pulse_width)
+	_enqueue_pulse(origin_pos, 0.0, pulse_speed, pulse_width, Color(1, 1, 1) )
 	
 	_spawn_hitbox(origin_pos)
 	
@@ -64,16 +63,16 @@ func emit_wave_with_params(loudness: float):
 
 	# Emit
 	var origin_pos := _origin_node.global_position
-	_enqueue_pulse(origin_pos, 0.0, speed, width)
 
-	var color : Color
+	var color : Color = Color(1, 1, 1) 
 	if loudness < quiet_threshold:
 		color = Color(1, 1, 1)  # pure white
 	elif loudness < medium_threshold:
 		color = Color(1.0, 0.9, 0.2)  # bright yellow
 	else:
 		color = Color(0.9, 0.0, 0.0)  # deep blood red
-	_quad.get_active_material(0).set_shader_parameter("pulse_color", color)
+	#_quad.get_active_material(0).set_shader_parameter("pulse_color", color)
+	_enqueue_pulse(origin_pos, 0.0, speed, width, color)
 	pulse_width = width
 	max_distance = distance
 	
@@ -88,12 +87,12 @@ func _spawn_hitbox(origin_pos: Vector3):
 	h.start(origin_pos, pulse_speed, max_distance, self)
 
 # internal: add new pulse or reuse oldest if full (queue behavior)
-func _enqueue_pulse(origin: Vector3, radius: float, speed: float, width: float):
+func _enqueue_pulse(origin: Vector3, radius: float, speed: float, width: float, color: Color):
 	if pulses.size() < pulse_scene_limit:
-		pulses.append({"origin": origin, "radius": radius, "speed": speed, "width": width})
+		pulses.append({"origin": origin, "radius": radius, "speed": speed, "width": width, "color": color})
 	else:
 		# recycle the oldest (FIFO), reset its properties
-		pulses[0] = {"origin": origin, "radius": radius, "speed": speed, "width": width}
+		pulses[0] = {"origin": origin, "radius": radius, "speed": speed, "width": width, "color": color}
 		pulses = pulses.slice(1, pulses.size()) + [pulses[0]]  # move it to back
 
 func _update_pulses(delta):
@@ -105,7 +104,31 @@ func _update_pulses(delta):
 			pulses.remove_at(i)
 		else:
 			i += 1
+	var n := pulses.size()
+	var i2 := 0
+	while i2 < n:
+		var p1 = pulses[i2]
 
+		var j2 := i2 + 1
+		while j2 < n:
+			var p2 = pulses[j2]
+
+			# p1 overtakes p2
+			if p1.radius > p2.radius and p1.speed > p2.speed:
+				pulses.remove_at(j2)
+				n -= 1
+				continue
+
+			# p2 overtakes p1 → kill p1
+			elif p2.radius > p1.radius and p2.speed > p1.speed:
+				pulses.remove_at(i2)
+				n -= 1
+				i2 -= 1
+				break
+
+			j2 += 1
+
+		i2 += 1
 func _upload_pulses_to_shader():
 	if _quad == null:
 		return
@@ -129,10 +152,17 @@ func _upload_pulses_to_shader():
 	mat.set_shader_parameter("pulse_origins", origins_arr)
 	mat.set_shader_parameter("pulse_radii", radii_arr)
 	mat.set_shader_parameter("world_scale", world_scale)
+	var color_arr := []
 	var width_arr := []
 	for i in range(pulse_scene_limit):
 		if i < count:
 			width_arr.append(pulses[i]["width"])
+			var c: Color = pulses[i]["color"]
+			print(c)
+			color_arr.append(Vector4(c.r, c.g, c.b, c.a))
 		else:
 			width_arr.append(0.0)
+			color_arr.append(Vector4(1.0, 1.0, 1.0, 1.0))
+			
 	mat.set_shader_parameter("pulse_widths", width_arr)
+	mat.set_shader_parameter("pulse_colors", color_arr)

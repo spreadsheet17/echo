@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://irptnlvyubvj"]
+[gd_scene load_steps=9 format=4 uid="uid://irptnlvyubvj"]
 
 [ext_resource type="Script" uid="uid://buw6hmxqemr2v" path="res://scripts/character.gd" id="1_vyyir"]
 [ext_resource type="PackedScene" uid="uid://c7liipcmpyp3w" path="res://interaction/pulse_manager.tscn" id="2_7iv3k"]
@@ -15,8 +15,9 @@ shader_parameter/pulse_origins = PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 shader_parameter/pulse_radii = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/pulse_widths = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/default_pulse_width = 10.0
-shader_parameter/pulse_color = Color(1, 1, 1, 1)
+shader_parameter/pulse_colors = PackedVector4Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/world_scale = 0.01
+shader_parameter/emission_strength = 2.0
 
 [sub_resource type="QuadMesh" id="QuadMesh_ajiqu"]
 material = SubResource("ShaderMaterial_axrfw")
