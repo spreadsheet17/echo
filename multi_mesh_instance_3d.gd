@@ -11,7 +11,6 @@ extends MultiMeshInstance3D
 func _ready():
 	set_mat()
 	regenerate_mesh()
-	#apply_collisions()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -28,7 +27,7 @@ func _process(delta):
 # w and h are pairs of room sizes randomly selected
 # make sure no rooms are overlapping
 # put door on the side that is not against a wall
-const N: int = 40 # no. of rooms
+const N: int = 50 # no. of rooms
 const room_types := [
 	[14, 10], # bedroom			- 0
 	[20, 10], # kitchen			- 1
@@ -98,12 +97,6 @@ class Room:
 				if mat[Vector2(center_row,center_col-c)] == 'W':
 					left_bound = center_col-c
 					break
-			#print('in room: ', upper_bound, ' ', left_bound)
-			#print('cT cL- ', cT, ' ', cL)
-			#print('center- ', center_row, ' ', center_col)
-			#print('mat lu: ', mat[Vector2(upper_bound,left_bound)])
-			#print(': ', mat[Vector2(upper_bound-1,left_bound)])
-			#print(': ', mat[Vector2(upper_bound+1,left_bound)])
 			hbound[0] = upper_bound
 			vbound[0] = left_bound
 		
@@ -119,12 +112,6 @@ class Room:
 				if mat[Vector2(center_row,center_col+c)] == 'W':
 					right_bound = center_col+c
 					break
-			#print('in room: ', upper_bound, ' ', right_bound)
-			#print('cT cL- ', cT, ' ', cL)
-			#print('center- ', center_row, ' ', center_col)
-			#print('mat lu: ', mat[Vector2(upper_bound,right_bound)])
-			#print(': ', mat[Vector2(upper_bound-1,right_bound)])
-			#print(': ', mat[Vector2(upper_bound+1,right_bound)])
 			hbound[0] = upper_bound
 			vbound[0] = right_bound
 
@@ -140,12 +127,6 @@ class Room:
 				if mat[Vector2(center_row,center_col-c)] == 'W':
 					left_bound = center_col-c
 					break
-			#print('in room: ', bottom_bound, ' ', left_bound)
-			#print('cT cL- ', cT, ' ', cL)
-			#print('center- ', center_row, ' ', center_col)
-			#print('mat lu: ', mat[Vector2(bottom_bound,left_bound)])
-			#print(': ', mat[Vector2(bottom_bound-1,left_bound)])
-			#print(': ', mat[Vector2(bottom_bound+1,left_bound)])
 			hbound[0] = bottom_bound
 			vbound[0] = left_bound
 			
@@ -161,12 +142,6 @@ class Room:
 				if mat[Vector2(center_row,center_col+c)] == 'W':
 					right_bound = center_col+c
 					break
-			#print('in room: ', bottom_bound, ' ', right_bound)
-			#print('cT cL- ', cT, ' ', cL)
-			#print('center- ', center_row, ' ', center_col)
-			#print('mat lu: ', mat[Vector2(bottom_bound,right_bound)])
-			#print(': ', mat[Vector2(bottom_bound-1,right_bound)])
-			#print(': ', mat[Vector2(bottom_bound+1,right_bound)])
 			hbound[0] = bottom_bound
 			vbound[0] = right_bound
 
@@ -174,13 +149,8 @@ func set_mat() -> void:
 	# initialize mat
 	# U - unset - initial state of all room
 	for row: int in room_height:
-		for col: int in room_width + outdoor_space:
-			#if (row == 49 && col >= 24 && col <= 74) || (row == 149 && col >= 24 && col <= 74) || (col == 24 && row >= 49 && row <= 149) || (col == 74 && row >= 49 && row <= 149):
-				#mat[Vector2(row,col)] = 'O' # outline, for doors
-			#else: 
-				#mat[Vector2(row,col)] = 'U'
+		for col: int in room_width:
 			mat[Vector2(row,col)] = 'U'
-			#instance_count += 1
 	
 	# set walls for each room
 	for i: int in N:
@@ -255,11 +225,10 @@ func set_mat() -> void:
 			else:
 				new_room.find_bounds(mat,cT,cL,'lu')
 		doors(row,col,Vector2(new_room.hbound[0], new_room.vbound[0]),cT+cB,cL+cR)
-	#walls(room_height,room_width)
+	walls(room_height,room_width)
 	#cleanup()
-	#old_doors()
-	#print_mat()
-	print(instance_count)
+	#count_instances()
+	print_mat()
 
 func set_room() -> Array:
 	var rng = RandomNumberGenerator.new()
@@ -345,15 +314,12 @@ func assign(row,col,row_size,col_size,dir) -> void:
 				if r == row_size-1:
 					if mat[Vector2(row-(r+1),col-c)] != 'W':
 						mat[Vector2(row-(r+1),col-c)] = 'W'
-						instance_count += (wall_height-1)
 				if c == col_size-1:
 					if mat[Vector2(row-r,col-(c+1))] != 'W':
 						mat[Vector2(row-r,col-(c+1))] = 'W'
-						instance_count += (wall_height-1)
 				if r == row_size-1 && c == col_size-1:
 					if mat[Vector2(row-(r+1),col-(c+1))] != 'W':
 						mat[Vector2(row-(r+1),col-(c+1))] = 'W'
-						instance_count += (wall_height-1)
 
 	if dir == 'RU':
 		for r in row_size:
@@ -368,15 +334,12 @@ func assign(row,col,row_size,col_size,dir) -> void:
 				if r == row_size-1:
 					if mat[Vector2(row-(r+1),col+c)] != 'W':
 						mat[Vector2(row-(r+1),col+c)] = 'W'
-						instance_count += (wall_height-1)
 				if c == col_size-1:
 					if mat[Vector2(row-r,col+(c+1))] != 'W':
 						mat[Vector2(row-r,col+(c+1))] = 'W'
-						instance_count += (wall_height-1)
 				if r == row_size-1 && c == col_size-1:
 					if mat[Vector2(row-(r+1),col+(c+1))] != 'W':
 						mat[Vector2(row-(r+1),col+(c+1))] = 'W'
-						instance_count += (wall_height-1)
 
 	if dir == 'LB':
 		for r in row_size:
@@ -391,15 +354,12 @@ func assign(row,col,row_size,col_size,dir) -> void:
 				if r == row_size-1:
 					if mat[Vector2(row+(r+1),col-c)] != 'W':
 						mat[Vector2(row+(r+1),col-c)] = 'W'
-						instance_count += (wall_height-1)
 				if c == col_size-1:
 					if mat[Vector2(row+r,col-(c+1))] != 'W':
 						mat[Vector2(row+r,col-(c+1))] = 'W'
-						instance_count += (wall_height-1)
 				if r == row_size-1 && c == col_size-1:
 					if mat[Vector2(row+(r+1),col-(c+1))] != 'W':
 						mat[Vector2(row+(r+1),col-(c+1))] = 'W'
-						instance_count += (wall_height-1)
 
 	if dir == 'RB':
 		for r in row_size:
@@ -414,15 +374,12 @@ func assign(row,col,row_size,col_size,dir) -> void:
 				if r == row_size-1:
 					if mat[Vector2(row+(r+1),col+c)] != 'W':
 						mat[Vector2(row+(r+1),col+c)] = 'W'
-						instance_count += (wall_height-1)
 				if c == col_size-1:
 					if mat[Vector2(row+r,col+(c+1))] != 'W':
 						mat[Vector2(row+r,col+(c+1))] = 'W'
-						instance_count += (wall_height-1)
 				if r == row_size-1 && c == col_size-1:
 					if mat[Vector2(row+(r+1),col+(c+1))] != 'W':
 						mat[Vector2(row+(r+1),col+(c+1))] = 'W'
-						instance_count += (wall_height-1)
 
 # add walls
 func walls(row_size, col_size) -> void:
@@ -434,7 +391,6 @@ func walls(row_size, col_size) -> void:
 				continue
 			if (mat[Vector2(row,col)] == 'U' && check_directions(row,col,'F','all')) || (mat[Vector2(row,col)] == 'W' &&  check_directions(row,col,'U','all')):
 				mat[Vector2(row,col)] = 'W'
-				instance_count+=(wall_height-1)
 
 # add doors to all inside walls
 func old_doors() -> void:
@@ -493,12 +449,8 @@ func doors(row,col,lu,row_size,col_size) -> void:
 	for c: int in range(tb_door, tb_door+3):
 		if mat[Vector2(row_start,c)] == 'W': 
 			mat[Vector2(row_start,c)] = 'D'
-			instance_count -= (wall_height-1)
-			instance_count += transom
 		if mat[Vector2(row_start+row_size,c)] == 'W': 
 			mat[Vector2(row_start+row_size,c)] = 'D'
-			instance_count -= (wall_height-1)
-			instance_count += transom
 
 	# left and right door
 	var lr_door = row_start
@@ -508,37 +460,8 @@ func doors(row,col,lu,row_size,col_size) -> void:
 	for r: int in range(lr_door, lr_door+3):
 		if mat[Vector2(r,col_start)] == 'W': 
 			mat[Vector2(r,col_start)] = 'D'
-			instance_count -= (wall_height-1)
-			instance_count += transom
 		if mat[Vector2(r,col_start+col_size)] == 'W': 
 			mat[Vector2(r,col_start+col_size)] = 'D'
-			instance_count -= (wall_height-1)
-			instance_count += transom
-
-func cleanup() -> void:
-	# 1. add doors if a door is up against a wall
-	# 2. remove misplaced doors
-	for row: int in room_height:
-		for col: int in room_width + outdoor_space:
-			#if mat[Vector2(row,col)] == 'W' && (check_directions(row,col,'D','up') || check_directions(row,col,'D','down') || check_directions(row,col,'D','left') || check_directions(row,col,'D','right')):
-				#mat[Vector2(row,col)] = 'D'
-			if mat[Vector2(row,col)] == 'D' && check_directions(row,col,'U','strict-all-d'):
-				mat[Vector2(row,col)] = 'F'
-
-	# add outer wall
-	var t_wall = 0
-	var b_wall = 0
-	var t_wall_found = false
-	for row: int in room_height:
-		for col: int in room_width + outdoor_space:
-			if mat[Vector2(row,col)] == 'W':
-				if !t_wall_found: 
-					t_wall = row
-					t_wall_found = true
-				b_wall = row
-				if col-2 >= 0:
-					mat[Vector2(row,col)] = '0W'
-					break
 
 # checks if all directions match to_check
 func check_directions(row,col,to_check,dir) -> bool:
@@ -600,6 +523,18 @@ func check_directions(row,col,to_check,dir) -> bool:
 		
 		return counter == 8
 
+func count_instances() -> int:
+	var instance_count : int = 0
+	for row in room_height:
+		for col in room_width:
+			if mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'OW':
+				instance_count += wall_height
+			elif mat[Vector2(row,col)] == 'D':
+				instance_count += transom+1
+	
+	print('instance count: ', instance_count)
+	return instance_count
+
 func print_mat():
 	for i: int in room_height:
 		var str = ""
@@ -611,20 +546,18 @@ func print_mat():
 #             MULTIMESH STUFF
 # ============================================
 var mesh: MultiMesh
-var instance_count : int = 0 # incremented by set_mat()
 
 func regenerate_mesh() -> void:
 	if !mesh:
 		mesh = MultiMesh.new()
 		mesh.transform_format = MultiMesh.TRANSFORM_3D
 		mesh.mesh = BoxMesh.new()
-
 		multimesh = mesh
-	var shape = multimesh.mesh.create_trimesh_shape()
-	multimesh.instance_count = instance_count
+
+	multimesh.instance_count = count_instances()
 	var counter = 0
 	for row: int in room_height:
-		for col: int in room_width + outdoor_space:
+		for col: int in room_width:
 			# wall: W
 			# outer wall: OW
 			if mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'OW':
@@ -634,28 +567,7 @@ func regenerate_mesh() -> void:
 
 			# door
 			elif mat[Vector2(row,col)] == 'D':
-				# floor below
-				#multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,0,col)))
-				#counter += 1
-				
-				# then door
-				for d: int in range(door_height, wall_height+1):
-					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,d,col)))
+				# door
+				for d: int in transom+1:
+					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,d+door_height,col)))
 					counter += 1
-
-			# floor
-			#else:
-				#multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,0,col)))
-				#counter += 1
-
-@export var collision_scene: PackedScene  # Scene containing StaticBody3D + CollisionShape3D
-
-func apply_collisions():
-	collision_scene = PackedScene.new()
-
-	for i in range(instance_count):
-		var transform = multimesh.get_instance_transform(i)
-
-		var collider = collision_scene.instantiate()
-		collider.transform = transform
-		get_parent().add_child(collider)
