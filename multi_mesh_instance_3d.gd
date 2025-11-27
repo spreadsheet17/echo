@@ -40,7 +40,7 @@ const room_types := [
 const room_sizes: PackedInt32Array = [[]]
 var mat := {}
 const room_height = 200 # rows
-const room_width = 100 # cols
+const room_width = 200 # cols
 const outdoor_space = 100 # width, height is room_height; for trees and stuff
 const wall_height = 10
 const transom = 3 # space above the door; prolly not really transom, but it sounds cool so
@@ -48,6 +48,7 @@ const door_height = wall_height - transom
 const door_width = 3
 var rooms := {}
 var lu := []
+const max_retries = 10
 
 class Room:
 	var center_row = 0
@@ -83,26 +84,90 @@ class Room:
 			for col in col_size:
 				own_mat[Vector2(row,col)] = 'U'
 				
-	func find_bounds(mat,cT,cL):
-		var upper_bound = 0
-		var left_bound = 0
-		for r in cT+1:
-			if mat[Vector2(center_row-r,center_col)] == 'W':
-				upper_bound = center_row-r
-				break
-				
-		for c in cL+1:
-			if mat[Vector2(center_row,center_col-c)] == 'W':
-				left_bound = center_col-c
-				break
-		print('in room: ', upper_bound, ' ', left_bound)
-		print('cT cL- ', cT, ' ', cL)
-		print('center- ', center_row, ' ', center_col)
-		print('mat lu: ', mat[Vector2(upper_bound,left_bound)])
-		print(': ', mat[Vector2(upper_bound-1,left_bound)])
-		print(': ', mat[Vector2(upper_bound+1,left_bound)])
-		hbound[0] = upper_bound
-		vbound[0] = left_bound
+	func find_bounds(mat,cT,cL,dir):
+		if dir == 'lu':
+			var upper_bound = 0
+			var left_bound = 0
+			for r in cT+1:
+				if mat[Vector2(center_row-r,center_col)] == 'W':
+					upper_bound = center_row-r
+					break
+					
+			for c in cL+1:
+				if mat[Vector2(center_row,center_col-c)] == 'W':
+					left_bound = center_col-c
+					break
+			print('in room: ', upper_bound, ' ', left_bound)
+			print('cT cL- ', cT, ' ', cL)
+			print('center- ', center_row, ' ', center_col)
+			print('mat lu: ', mat[Vector2(upper_bound,left_bound)])
+			print(': ', mat[Vector2(upper_bound-1,left_bound)])
+			print(': ', mat[Vector2(upper_bound+1,left_bound)])
+			hbound[0] = upper_bound
+			vbound[0] = left_bound
+		
+		elif dir == 'ru':
+			var upper_bound = 0
+			var right_bound = 0
+			for r in cT+1:
+				if mat[Vector2(center_row-r,center_col)] == 'W':
+					upper_bound = center_row-r
+					break
+					
+			for c in cL+1:
+				if mat[Vector2(center_row,center_col+c)] == 'W':
+					right_bound = center_col+c
+					break
+			print('in room: ', upper_bound, ' ', right_bound)
+			print('cT cL- ', cT, ' ', cL)
+			print('center- ', center_row, ' ', center_col)
+			print('mat lu: ', mat[Vector2(upper_bound,right_bound)])
+			print(': ', mat[Vector2(upper_bound-1,right_bound)])
+			print(': ', mat[Vector2(upper_bound+1,right_bound)])
+			hbound[0] = upper_bound
+			vbound[0] = right_bound
+
+		elif dir == 'lb':
+			var bottom_bound = 0
+			var left_bound = 0
+			for r in cT+1:
+				if mat[Vector2(center_row+r,center_col)] == 'W':
+					bottom_bound = center_row+r
+					break
+					
+			for c in cL+1:
+				if mat[Vector2(center_row,center_col-c)] == 'W':
+					left_bound = center_col-c
+					break
+			print('in room: ', bottom_bound, ' ', left_bound)
+			print('cT cL- ', cT, ' ', cL)
+			print('center- ', center_row, ' ', center_col)
+			print('mat lu: ', mat[Vector2(bottom_bound,left_bound)])
+			print(': ', mat[Vector2(bottom_bound-1,left_bound)])
+			print(': ', mat[Vector2(bottom_bound+1,left_bound)])
+			hbound[0] = bottom_bound
+			vbound[0] = left_bound
+			
+		else:
+			var bottom_bound = 0
+			var right_bound = 0
+			for r in cT+1:
+				if mat[Vector2(center_row+r,center_col)] == 'W':
+					bottom_bound = center_row+r
+					break
+					
+			for c in cL+1:
+				if mat[Vector2(center_row,center_col+c)] == 'W':
+					right_bound = center_col+c
+					break
+			print('in room: ', bottom_bound, ' ', right_bound)
+			print('cT cL- ', cT, ' ', cL)
+			print('center- ', center_row, ' ', center_col)
+			print('mat lu: ', mat[Vector2(bottom_bound,right_bound)])
+			print(': ', mat[Vector2(bottom_bound-1,right_bound)])
+			print(': ', mat[Vector2(bottom_bound+1,right_bound)])
+			hbound[0] = bottom_bound
+			vbound[0] = right_bound
 
 func set_mat() -> void:
 	# initialize mat
@@ -119,6 +184,7 @@ func set_mat() -> void:
 	# set walls for each room
 	for i: int in N:
 		var set_room_val = set_room()
+		if set_room_val.size() == 0: continue
 		var row = set_room_val[0]
 		var col = set_room_val[1]
 		var row_size = set_room_val[2]
@@ -131,8 +197,13 @@ func set_mat() -> void:
 		var redo = checker_val[0]
 
 		# redo room assignment if room was mistakenly placed inside an existing room
+		var retries_failed = false
+		var counter = 0
 		while redo: 
 			set_room_val = set_room()
+			if set_room_val.size() == 0 || counter == max_retries:
+				retries_failed = true
+				break
 			row = set_room_val[0]
 			col = set_room_val[1]
 			row_size = set_room_val[2]
@@ -143,7 +214,9 @@ func set_mat() -> void:
 			# move units to the appropriate direction to be able to get the size specified by the room type
 			checker_val = checker(row, col, row_size, col_size)
 			redo = checker_val[0]
+			counter+=1
 		
+		if retries_failed: continue
 		var new_room = Room.new(row,col,rtype)
 		rooms[i] = new_room
 
@@ -170,7 +243,16 @@ func set_mat() -> void:
 		assign(row,col,cT,cR,'RU')
 		assign(row,col,cB,cL,'LB')
 		assign(row,col,cB,cR,'RB')
-		new_room.find_bounds(mat,cT,cL)
+		if cT == 0:
+			if cL == 0:
+				new_room.find_bounds(mat,cB,cR,'rb')
+			else:
+				new_room.find_bounds(mat,cB,cL,'lb')
+		else:
+			if cL == 0:
+				new_room.find_bounds(mat,cT,cR,'ru')
+			else:
+				new_room.find_bounds(mat,cT,cL,'lu')
 		doors(row,col,Vector2(new_room.hbound[0], new_room.vbound[0]),cT+cB,cL+cR)
 	#walls(room_height,room_width)
 	#old_doors()
@@ -191,10 +273,14 @@ func set_room() -> Array:
 
 	# make sure to set unique rooms
 	# and keep new rooms out of already existing rooms
-	while mat[Vector2(row,col)] != 'U' || mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C':
+	var counter = 0
+	while counter < max_retries && mat[Vector2(row,col)] != 'U' && (mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C' || mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'D'):
 		row = rng.randi_range(row_min, row_min + half_height)
 		col = rng.randi_range(col_min, col_min + half_width)
-
+		counter+=1
+	
+	if counter == max_retries:
+		return []
 	# determine each room with their room type
 	if mat[Vector2(row,col)] == 'U':
 		mat[Vector2(row,col)] = 'C' + str(rtype)
