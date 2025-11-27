@@ -200,7 +200,7 @@ func set_mat() -> void:
 			cL += ((col_size/2)-cR)
 		elif cL < cR:
 			cR += ((col_size/2)-cL)
-			
+
 		if cT > cB:
 			cT += ((row_size/2)-cB)
 		elif cT < cB:
@@ -546,7 +546,7 @@ func print_mat():
 #             MULTIMESH STUFF
 # ============================================
 var mesh: MultiMesh
-
+var instances = 0
 func regenerate_mesh() -> void:
 	if !mesh:
 		mesh = MultiMesh.new()
@@ -555,6 +555,7 @@ func regenerate_mesh() -> void:
 		multimesh = mesh
 
 	multimesh.instance_count = count_instances()
+	instances = count_instances()
 	var counter = 0
 	for row: int in room_height:
 		for col: int in room_width:
@@ -571,3 +572,37 @@ func regenerate_mesh() -> void:
 				for d: int in transom+1:
 					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,d+door_height,col)))
 					counter += 1
+					
+	build_collision()
+
+const chunk_size = 32
+func build_collision() -> void:
+	var chunks := {}
+	for i in instances:
+		var instance = multimesh.get_instance_transform(i)
+		var chunk_key = Vector3i(
+			instance.origin[0] / chunk_size,
+			instance.origin[1] / chunk_size,
+			instance.origin[2] / chunk_size
+		)
+		
+		if chunk_key not in chunks:
+			chunks[chunk_key] = []
+		chunks[chunk_key].append(instance)
+		
+	for key in chunks.keys():
+		var pos = chunks[key]
+		create_chunk_collision(key, pos)
+	print('chunks: ', chunks.keys().size())
+
+func create_chunk_collision(chunk_key: Vector3i, positions: Array):
+	var chunk_body = StaticBody3D.new()
+	chunk_body.name = "Chunk_%d_%d" % [chunk_key.x, chunk_key.y]
+	add_child(chunk_body)
+	
+	for pos in positions:
+		var shape = CollisionShape3D.new()
+		var box = BoxShape3D.new()
+		shape.shape = box
+		shape.transform.origin = pos.origin
+		chunk_body.add_child(shape)
