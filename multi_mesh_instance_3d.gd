@@ -11,6 +11,7 @@ extends MultiMeshInstance3D
 func _ready():
 	set_mat()
 	regenerate_mesh()
+	#apply_collisions()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -32,15 +33,15 @@ const room_types := [
 	[14, 10], # bedroom			- 0
 	[20, 10], # kitchen			- 1
 	[16, 20], # dining room		- 2
-	[24, 24], # living room		- 3
+	[20, 20], # living room		- 3
 	[10, 8], # toilet			- 4
 	[18, 18], # some room 1		- 5
-	[28, 28] # some room 2		- 6
+	[15, 15] # some room 2		- 6
 	]
 const room_sizes: PackedInt32Array = [[]]
 var mat := {}
 const room_height = 200 # rows
-const room_width = 200 # cols
+const room_width = 150 # cols
 const outdoor_space = 100 # width, height is room_height; for trees and stuff
 const wall_height = 10
 const transom = 3 # space above the door; prolly not really transom, but it sounds cool so
@@ -97,12 +98,12 @@ class Room:
 				if mat[Vector2(center_row,center_col-c)] == 'W':
 					left_bound = center_col-c
 					break
-			print('in room: ', upper_bound, ' ', left_bound)
-			print('cT cL- ', cT, ' ', cL)
-			print('center- ', center_row, ' ', center_col)
-			print('mat lu: ', mat[Vector2(upper_bound,left_bound)])
-			print(': ', mat[Vector2(upper_bound-1,left_bound)])
-			print(': ', mat[Vector2(upper_bound+1,left_bound)])
+			#print('in room: ', upper_bound, ' ', left_bound)
+			#print('cT cL- ', cT, ' ', cL)
+			#print('center- ', center_row, ' ', center_col)
+			#print('mat lu: ', mat[Vector2(upper_bound,left_bound)])
+			#print(': ', mat[Vector2(upper_bound-1,left_bound)])
+			#print(': ', mat[Vector2(upper_bound+1,left_bound)])
 			hbound[0] = upper_bound
 			vbound[0] = left_bound
 		
@@ -118,12 +119,12 @@ class Room:
 				if mat[Vector2(center_row,center_col+c)] == 'W':
 					right_bound = center_col+c
 					break
-			print('in room: ', upper_bound, ' ', right_bound)
-			print('cT cL- ', cT, ' ', cL)
-			print('center- ', center_row, ' ', center_col)
-			print('mat lu: ', mat[Vector2(upper_bound,right_bound)])
-			print(': ', mat[Vector2(upper_bound-1,right_bound)])
-			print(': ', mat[Vector2(upper_bound+1,right_bound)])
+			#print('in room: ', upper_bound, ' ', right_bound)
+			#print('cT cL- ', cT, ' ', cL)
+			#print('center- ', center_row, ' ', center_col)
+			#print('mat lu: ', mat[Vector2(upper_bound,right_bound)])
+			#print(': ', mat[Vector2(upper_bound-1,right_bound)])
+			#print(': ', mat[Vector2(upper_bound+1,right_bound)])
 			hbound[0] = upper_bound
 			vbound[0] = right_bound
 
@@ -139,12 +140,12 @@ class Room:
 				if mat[Vector2(center_row,center_col-c)] == 'W':
 					left_bound = center_col-c
 					break
-			print('in room: ', bottom_bound, ' ', left_bound)
-			print('cT cL- ', cT, ' ', cL)
-			print('center- ', center_row, ' ', center_col)
-			print('mat lu: ', mat[Vector2(bottom_bound,left_bound)])
-			print(': ', mat[Vector2(bottom_bound-1,left_bound)])
-			print(': ', mat[Vector2(bottom_bound+1,left_bound)])
+			#print('in room: ', bottom_bound, ' ', left_bound)
+			#print('cT cL- ', cT, ' ', cL)
+			#print('center- ', center_row, ' ', center_col)
+			#print('mat lu: ', mat[Vector2(bottom_bound,left_bound)])
+			#print(': ', mat[Vector2(bottom_bound-1,left_bound)])
+			#print(': ', mat[Vector2(bottom_bound+1,left_bound)])
 			hbound[0] = bottom_bound
 			vbound[0] = left_bound
 			
@@ -160,12 +161,12 @@ class Room:
 				if mat[Vector2(center_row,center_col+c)] == 'W':
 					right_bound = center_col+c
 					break
-			print('in room: ', bottom_bound, ' ', right_bound)
-			print('cT cL- ', cT, ' ', cL)
-			print('center- ', center_row, ' ', center_col)
-			print('mat lu: ', mat[Vector2(bottom_bound,right_bound)])
-			print(': ', mat[Vector2(bottom_bound-1,right_bound)])
-			print(': ', mat[Vector2(bottom_bound+1,right_bound)])
+			#print('in room: ', bottom_bound, ' ', right_bound)
+			#print('cT cL- ', cT, ' ', cL)
+			#print('center- ', center_row, ' ', center_col)
+			#print('mat lu: ', mat[Vector2(bottom_bound,right_bound)])
+			#print(': ', mat[Vector2(bottom_bound-1,right_bound)])
+			#print(': ', mat[Vector2(bottom_bound+1,right_bound)])
 			hbound[0] = bottom_bound
 			vbound[0] = right_bound
 
@@ -179,7 +180,7 @@ func set_mat() -> void:
 			#else: 
 				#mat[Vector2(row,col)] = 'U'
 			mat[Vector2(row,col)] = 'U'
-			instance_count += 1
+			#instance_count += 1
 	
 	# set walls for each room
 	for i: int in N:
@@ -237,7 +238,7 @@ func set_mat() -> void:
 
 		new_room.set_dims(cT+cB,cL+cR)
 
-		print(i, ' room size: ', rooms[i].row_size, ' ', rooms[i].col_size)
+		#print(i, ' room size: ', rooms[i].row_size, ' ', rooms[i].col_size)
 		# assign walls and floors
 		assign(row,col,cT,cL,'LU')
 		assign(row,col,cT,cR,'RU')
@@ -255,8 +256,9 @@ func set_mat() -> void:
 				new_room.find_bounds(mat,cT,cL,'lu')
 		doors(row,col,Vector2(new_room.hbound[0], new_room.vbound[0]),cT+cB,cL+cR)
 	#walls(room_height,room_width)
+	#cleanup()
 	#old_doors()
-	print_mat()
+	#print_mat()
 	print(instance_count)
 
 func set_room() -> Array:
@@ -431,7 +433,7 @@ func walls(row_size, col_size) -> void:
 			if row == 0 || col == 0 || row == row_size-1 || col == col_size-1:
 				continue
 			if (mat[Vector2(row,col)] == 'U' && check_directions(row,col,'F','all')) || (mat[Vector2(row,col)] == 'W' &&  check_directions(row,col,'U','all')):
-				mat[Vector2(row,col)] = 'OW'
+				mat[Vector2(row,col)] = 'W'
 				instance_count+=(wall_height-1)
 
 # add doors to all inside walls
@@ -477,7 +479,7 @@ func old_doors() -> void:
 						c+=1
 
 func doors(row,col,lu,row_size,col_size) -> void:
-	print('lu ', lu)
+	#print('lu ', lu)
 	if mat[lu] != 'W': return
 	var rng = RandomNumberGenerator.new()
 	var row_start = lu[0]
@@ -489,8 +491,14 @@ func doors(row,col,lu,row_size,col_size) -> void:
 		tb_door = rng.randi_range(col_start, (col_start + col_size)-door_width)
 
 	for c: int in range(tb_door, tb_door+3):
-		mat[Vector2(row_start,c)] = 'D'
-		mat[Vector2(row_start+row_size,c)] = 'D'
+		if mat[Vector2(row_start,c)] == 'W': 
+			mat[Vector2(row_start,c)] = 'D'
+			instance_count -= (wall_height-1)
+			instance_count += transom
+		if mat[Vector2(row_start+row_size,c)] == 'W': 
+			mat[Vector2(row_start+row_size,c)] = 'D'
+			instance_count -= (wall_height-1)
+			instance_count += transom
 
 	# left and right door
 	var lr_door = row_start
@@ -498,30 +506,99 @@ func doors(row,col,lu,row_size,col_size) -> void:
 		lr_door = rng.randi_range(row_start, (row_start + row_size)-door_width)
 	
 	for r: int in range(lr_door, lr_door+3):
-		mat[Vector2(r,col_start)] = 'D'
-		mat[Vector2(r,col_start+col_size)] = 'D'
+		if mat[Vector2(r,col_start)] == 'W': 
+			mat[Vector2(r,col_start)] = 'D'
+			instance_count -= (wall_height-1)
+			instance_count += transom
+		if mat[Vector2(r,col_start+col_size)] == 'W': 
+			mat[Vector2(r,col_start+col_size)] = 'D'
+			instance_count -= (wall_height-1)
+			instance_count += transom
 
+func cleanup() -> void:
+	# 1. add doors if a door is up against a wall
+	# 2. remove misplaced doors
+	for row: int in room_height:
+		for col: int in room_width + outdoor_space:
+			#if mat[Vector2(row,col)] == 'W' && (check_directions(row,col,'D','up') || check_directions(row,col,'D','down') || check_directions(row,col,'D','left') || check_directions(row,col,'D','right')):
+				#mat[Vector2(row,col)] = 'D'
+			if mat[Vector2(row,col)] == 'D' && check_directions(row,col,'U','strict-all-d'):
+				mat[Vector2(row,col)] = 'F'
+
+	# add outer wall
+	var t_wall = 0
+	var b_wall = 0
+	var t_wall_found = false
+	for row: int in room_height:
+		for col: int in room_width + outdoor_space:
+			if mat[Vector2(row,col)] == 'W':
+				if !t_wall_found: 
+					t_wall = row
+					t_wall_found = true
+				b_wall = row
+				if col-2 >= 0:
+					mat[Vector2(row,col)] = '0W'
+					break
 
 # checks if all directions match to_check
 func check_directions(row,col,to_check,dir) -> bool:
 	if dir == 'up':
+		if row-1 < 0: return false
 		return mat[Vector2(row-1,col)] == to_check
 	elif dir == 'down':
+		if row+1 >= room_height: return false
 		return mat[Vector2(row+1,col)] == to_check
 	elif dir == 'left':
+		if col-1 < 0: return false
 		return mat[Vector2(row,col-1)] == to_check
 	elif dir == 'right':
+		if col+1 >= room_width: return false
 		return mat[Vector2(row,col+1)] == to_check
 	elif dir == 'lu':
+		if row-1 < 0 || col-1 < 0: return false
 		return mat[Vector2(row-1,col-1)] == to_check
 	elif dir == 'ru':
+		if row-1 < 0 || col+1 >= room_width: return false
 		return mat[Vector2(row-1,col+1)] == to_check
 	elif dir == 'lb':
+		if row+1 > room_height || col-1 < 0: return false
 		return mat[Vector2(row+1,col-1)] == to_check
 	elif dir == 'rb':
+		if row+1 > room_height || col+1 >= room_width: return false
 		return mat[Vector2(row+1,col+1)] == to_check
-	else:
+	elif dir == 'all':
+		if row-1<0 || col-1< 0 || row+1 > room_height || col+1 >= room_width: return false
 		return mat[Vector2(row-1,col)] == to_check || mat[Vector2(row+1,col)] == to_check || mat[Vector2(row,col-1)] == to_check || mat[Vector2(row,col+1)] == to_check || mat[Vector2(row-1,col-1)] == to_check || mat[Vector2(row-1,col+1)] == to_check || mat[Vector2(row+1,col-1)] == to_check || mat[Vector2(row+1,col+1)] == to_check
+
+	else: # strict-all-d; strict check for isolated doors
+		var counter = 0 # 8 checks
+		if row-1>=0 && (mat[Vector2(row-1,col)] == to_check || mat[Vector2(row-1,col)] == 'D'):
+			counter += 1
+		
+		if col-1>=0 && (mat[Vector2(row,col-1)] == to_check || mat[Vector2(row,col-1)] == 'D'):
+			counter += 1
+				
+		if row+1<room_height && (mat[Vector2(row+1,col)] == to_check || mat[Vector2(row+1,col)] == 'D'):
+			counter += 1
+		
+		if col+1<room_width && (mat[Vector2(row,col+1)] == to_check || mat[Vector2(row,col+1)] == 'D'):
+			counter += 1
+		
+		
+		
+		if row-1>=0 && col-1>=0 && (mat[Vector2(row-1,col-1)] == to_check || mat[Vector2(row-1,col-1)] == 'D'):
+			counter += 1
+				
+		if row-1>=0 && col+1<room_width && (mat[Vector2(row-1,col+1)] == to_check || mat[Vector2(row-1,col+1)] == 'D'):
+			counter += 1
+		
+		if row+1<room_height && col-1>=0 && (mat[Vector2(row+1,col-1)] == to_check || mat[Vector2(row+1,col-1)] == 'D'):
+			counter += 1
+
+		if row+1<room_height && col+1<room_width && (mat[Vector2(row+1,col+1)] == to_check || mat[Vector2(row+1,col+1)] == 'D'):
+			counter += 1
+		
+		return counter == 8
 
 func print_mat():
 	for i: int in room_height:
@@ -541,9 +618,9 @@ func regenerate_mesh() -> void:
 		mesh = MultiMesh.new()
 		mesh.transform_format = MultiMesh.TRANSFORM_3D
 		mesh.mesh = BoxMesh.new()
+
 		multimesh = mesh
-	#multimesh.buffer.clear()
-	
+	var shape = multimesh.mesh.create_trimesh_shape()
 	multimesh.instance_count = instance_count
 	var counter = 0
 	for row: int in room_height:
@@ -558,8 +635,8 @@ func regenerate_mesh() -> void:
 			# door
 			elif mat[Vector2(row,col)] == 'D':
 				# floor below
-				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,0,col)))
-				counter += 1
+				#multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,0,col)))
+				#counter += 1
 				
 				# then door
 				for d: int in range(door_height, wall_height+1):
@@ -567,6 +644,18 @@ func regenerate_mesh() -> void:
 					counter += 1
 
 			# floor
-			else:
-				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,0,col)))
-				counter += 1
+			#else:
+				#multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,0,col)))
+				#counter += 1
+
+@export var collision_scene: PackedScene  # Scene containing StaticBody3D + CollisionShape3D
+
+func apply_collisions():
+	collision_scene = PackedScene.new()
+
+	for i in range(instance_count):
+		var transform = multimesh.get_instance_transform(i)
+
+		var collider = collision_scene.instantiate()
+		collider.transform = transform
+		get_parent().add_child(collider)
