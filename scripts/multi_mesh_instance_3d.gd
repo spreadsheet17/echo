@@ -26,7 +26,6 @@ func _process(delta):
 # - move vertically on both sides h/2 units
 # w and h are pairs of room sizes randomly selected
 # make sure no rooms are overlapping
-# put door on the side that is not against a wall
 const N: int = 50 # no. of rooms
 const room_types := [
 	[14, 10], # bedroom			- 0
@@ -50,6 +49,7 @@ const window_width = 3
 const window_height = 2
 const window_count = 4
 const window_boundary = 10
+const steps = 1
 var rooms := {}
 var lu := []
 const max_retries = 10
@@ -424,6 +424,12 @@ func walls(row_size, col_size) -> void:
 	for r in range(max[0],max[1]):
 		mat[Vector2(r,max[2])] = 'OW'
 		mat[Vector2(r,max[3])] = 'OW'
+	
+	# add floors
+	for r in range(max[0],max[1]):
+		for c in range(max[2],max[3]):
+			if mat[Vector2(r,c)] == 'U':
+				mat[Vector2(r,c)] = 'F'
 
 	# ---- WINDOWS ----
 	var width = max[1] - max[0]
@@ -488,8 +494,25 @@ func walls(row_size, col_size) -> void:
 		if mat[Vector2(center+i,max[3]-1)] in ['W', 'OW', 'M']:
 			mat[Vector2(center+i,max[3]-1)] = type
 	for i in end-max[3]:
-		mat[Vector2(center-(door_width-1),max[3]+i)] = 'W'
-		mat[Vector2(center+(door_width-1),max[3]+i)] = 'W'
+		for d in door_width:
+			if d == door_width-1:
+				mat[Vector2(center-(door_width-1),max[3]+i)] = 'W'
+				mat[Vector2(center+(door_width-1),max[3]+i)] = 'W'
+			elif i == end-max[3]-1:
+				mat[Vector2(center-(door_width-1),max[3]+i)] = 'D'
+				mat[Vector2(center+(door_width-1),max[3]+i)] = 'D'
+			else:
+				if i == 0:
+					mat[Vector2(center-d,max[3]+i)] = 'D'
+					mat[Vector2(center+d,max[3]+i)] = 'D'
+					continue
+				mat[Vector2(center-d,max[3]+i)] = 'F'
+				mat[Vector2(center+d,max[3]+i)] = 'F'
+
+	# step
+	for d in door_width:
+		mat[Vector2(center-d,end+steps)] = 'F'
+		mat[Vector2(center+d,end+steps)] = 'F'
 
 func doors(row,col,lu,row_size,col_size) -> void:
 	#print('lu ', lu)
@@ -587,9 +610,11 @@ func count_instances() -> int:
 			if mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'OW':
 				instance_count += wall_height
 			elif mat[Vector2(row,col)] == 'D':
-				instance_count += transom+1
+				instance_count += transom+2
 			elif mat[Vector2(row,col)] == 'M':
 				instance_count += (wall_height-window_height)
+			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C': # floor
+				instance_count += 1
 	
 	print('instance count: ', instance_count)
 	return instance_count
@@ -631,6 +656,8 @@ func regenerate_mesh() -> void:
 				for d: int in transom+1:
 					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,d+door_height,col)))
 					counter += 1
+				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,1,col)))
+				counter += 1
 			
 			# window: M
 			elif mat[Vector2(row,col)] == 'M':
@@ -638,6 +665,11 @@ func regenerate_mesh() -> void:
 					if w >= (wall_height-(transom+window_height)) && w < wall_height-transom: continue
 					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,w+1,col)))
 					counter += 1
+			
+			# floor
+			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C':
+				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,1,col)))
+				counter += 1
 	build_collision()
 
 const chunk_size = 32
