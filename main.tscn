@@ -1,3 +1,20 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:21fcf3b855df4b777b8d81a5bd05244f2c2328e72e564e9528c9f732df4397ae
-size 715
+[gd_scene load_steps=4 format=3 uid="uid://c1t0mwmbh8mg7"]
+
+[ext_resource type="PackedScene" uid="uid://irptnlvyubvj" path="res://interaction/character.tscn" id="2_iteha"]
+
+[sub_resource type="Sky" id="Sky_0xm2m"]
+
+[sub_resource type="Environment" id="Environment_h2yge"]
+background_mode = 2
+sky = SubResource("Sky_0xm2m")
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.0
+ambient_light_energy = 0.0
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_h2yge")
+
+[node name="CharacterBody3D" parent="." instance=ExtResource("2_iteha")]
+transform = Transform3D(1.344, 0, 0, 0, 1.7472, 0, 0, 0, 1.344, -22.9, 8.1, 0)
