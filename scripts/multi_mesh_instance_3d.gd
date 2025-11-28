@@ -397,37 +397,40 @@ func walls(row_size, col_size) -> void:
 			if (mat[Vector2(row,col)] == 'U' && check_directions(row,col,'F','all')) || (mat[Vector2(row,col)] == 'W' &&  check_directions(row,col,'U','all')):
 				mat[Vector2(row,col)] = 'W'
 	
+	# ---- WALLS ----
 	var max := [room_height,0,room_width,0] # top, bottom, left, right
 	for row: int in row_size:
 		for col: int in col_size:
 			if mat[Vector2(row,col)] == 'W':
-				# top
+				# left
 				if max[0] >= row:
 					max[0] = row
-				# bottom
+				# right
 				if max[1] <= row:
 					max[1] = row
-				# left
+				# top
 				if max[2] >= col:
 					max[2] = col
-				# right
+				# bottom
 				if max[3] <= col:
 					max[3] = col
 
-	# top and bottom walls
+	# side walls
 	for c in range(max[2],max[3]):
 		mat[Vector2(max[0],c)] = 'OW'
 		mat[Vector2(max[1],c)] = 'OW'
 
-	# side walls
+	# top and bottom walls
 	for r in range(max[0],max[1]):
 		mat[Vector2(r,max[2])] = 'OW'
 		mat[Vector2(r,max[3])] = 'OW'
 
-	# calculate windows
+	# ---- WINDOWS ----
 	var width = max[1] - max[0]
 	var length = max[3] - max[2]
 	var win_width_half = window_width/2
+	
+	# LEFT AND RIGHT
 	for c in range(max[2],max[3],width/(window_count)):
 		if c == max[2] || c == max[3]:
 			continue
@@ -439,7 +442,8 @@ func walls(row_size, col_size) -> void:
 			else:
 				mat[Vector2(max[0],(c-window_boundary)+w)] = 'M'
 				mat[Vector2(max[1],(c-window_boundary)+w)] = 'M'
-	
+
+	# TOP AND BOTTOM
 	for r in range(max[0],max[1],length/(window_count)):
 		if r == max[0] || r == max[1]:
 			continue
@@ -452,7 +456,40 @@ func walls(row_size, col_size) -> void:
 				mat[Vector2((r-window_boundary)+w,max[2])] = 'M'
 				mat[Vector2((r-window_boundary)+w,max[3])] = 'M'
 
-	print('bounds (tblr): ', max)
+	print('bounds (lrtb): ', max)
+	
+	# ---- MAIN ENTRANCE ----
+	var me_length = length/4
+	# place in the middle
+	var center = (width/2)+max[0]
+	var end = max[3]+outdoor_space/3
+	# walls
+	# front wall
+	for i in me_length:
+		mat[Vector2(center-i,end)] = 'OW'
+		mat[Vector2(center+i,end)] = 'OW'
+	# sides
+	for i in end-max[3]:
+		mat[Vector2(center-(me_length-1),max[3]+i)] = 'OW'
+		mat[Vector2(center+(me_length-1),max[3]+i)] = 'OW'
+
+	# door and corridor
+	var type = 'D'
+	for i in door_width:
+		if i == door_width-1: type = 'W'
+		else: type = 'D'
+		mat[Vector2(center-i,end)] = type
+		mat[Vector2(center+i,end)] = type
+		mat[Vector2(center-i,max[3])] = type
+		mat[Vector2(center+i,max[3])] = type
+		
+		if mat[Vector2(center-i,max[3]-1)] in ['W', 'OW', 'M']:
+			mat[Vector2(center-i,max[3]-1)] = type
+		if mat[Vector2(center+i,max[3]-1)] in ['W', 'OW', 'M']:
+			mat[Vector2(center+i,max[3]-1)] = type
+	for i in end-max[3]:
+		mat[Vector2(center-(door_width-1),max[3]+i)] = 'W'
+		mat[Vector2(center+(door_width-1),max[3]+i)] = 'W'
 
 func doors(row,col,lu,row_size,col_size) -> void:
 	#print('lu ', lu)
@@ -546,7 +583,7 @@ func check_directions(row,col,to_check,dir) -> bool:
 func count_instances() -> int:
 	var instance_count : int = 0
 	for row in room_height:
-		for col in room_width:
+		for col in room_width + outdoor_space:
 			if mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'OW':
 				instance_count += wall_height
 			elif mat[Vector2(row,col)] == 'D':
@@ -560,7 +597,7 @@ func count_instances() -> int:
 func print_mat():
 	for i: int in room_height:
 		var str = ""
-		for j: int in room_width:
+		for j: int in room_width + outdoor_space:
 			str += mat[Vector2(i,j)]
 		print(str)
 
@@ -580,7 +617,7 @@ func regenerate_mesh() -> void:
 	instances = count_instances()
 	var counter = 0
 	for row: int in room_height:
-		for col: int in room_width:
+		for col: int in room_width + outdoor_space:
 			# wall: W
 			# outer wall: OW
 			if mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'OW':
