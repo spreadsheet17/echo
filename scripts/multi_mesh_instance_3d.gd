@@ -41,12 +41,15 @@ const room_sizes: PackedInt32Array = [[]]
 var mat := {}
 const room_height = 200 # rows
 const room_width = 150 # cols
+const outdoor_space = 100
 const wall_height = 10
 const transom = 3 # space above the door; prolly not really transom, but it sounds cool so
 const door_height = wall_height - transom
 const door_width = 3
 const window_width = 3
 const window_height = 2
+const window_count = 4
+const window_boundary = 10
 var rooms := {}
 var lu := []
 const max_retries = 10
@@ -150,7 +153,7 @@ func set_mat() -> void:
 	# initialize mat
 	# U - unset - initial state of all room
 	for row: int in room_height:
-		for col: int in room_width:
+		for col: int in room_width + outdoor_space:
 			mat[Vector2(row,col)] = 'U'
 	
 	# set walls for each room
@@ -410,8 +413,7 @@ func walls(row_size, col_size) -> void:
 				# right
 				if max[3] <= col:
 					max[3] = col
-	
-	
+
 	# top and bottom walls
 	for c in range(max[2],max[3]):
 		mat[Vector2(max[0],c)] = 'OW'
@@ -421,8 +423,36 @@ func walls(row_size, col_size) -> void:
 	for r in range(max[0],max[1]):
 		mat[Vector2(r,max[2])] = 'OW'
 		mat[Vector2(r,max[3])] = 'OW'
+
+	# calculate windows
+	var width = max[1] - max[0]
+	var length = max[3] - max[2]
+	var win_width_half = window_width/2
+	for c in range(max[2],max[3],width/(window_count)):
+		if c == max[2] || c == max[3]:
+			continue
+		
+		for w in window_width:
+			if w < win_width_half:
+				mat[Vector2(max[0],(c-window_boundary)-w)] = 'M'
+				mat[Vector2(max[1],(c-window_boundary)-w)] = 'M'
+			else:
+				mat[Vector2(max[0],(c-window_boundary)+w)] = 'M'
+				mat[Vector2(max[1],(c-window_boundary)+w)] = 'M'
 	
-	print(max)
+	for r in range(max[0],max[1],length/(window_count)):
+		if r == max[0] || r == max[1]:
+			continue
+		
+		for w in window_width:
+			if w < win_width_half:
+				mat[Vector2((r-window_boundary)-w,max[2])] = 'M'
+				mat[Vector2((r-window_boundary)-w,max[3])] = 'M'
+			else:
+				mat[Vector2((r-window_boundary)+w,max[2])] = 'M'
+				mat[Vector2((r-window_boundary)+w,max[3])] = 'M'
+
+	print('bounds (tblr): ', max)
 
 func doors(row,col,lu,row_size,col_size) -> void:
 	#print('lu ', lu)
@@ -521,6 +551,8 @@ func count_instances() -> int:
 				instance_count += wall_height
 			elif mat[Vector2(row,col)] == 'D':
 				instance_count += transom+1
+			elif mat[Vector2(row,col)] == 'M':
+				instance_count += (wall_height-window_height)
 	
 	print('instance count: ', instance_count)
 	return instance_count
@@ -556,13 +588,19 @@ func regenerate_mesh() -> void:
 					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,w+1,col)))
 					counter += 1
 
-			# door
+			# door: D
 			elif mat[Vector2(row,col)] == 'D':
 				# door
 				for d: int in transom+1:
 					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,d+door_height,col)))
 					counter += 1
-					
+			
+			# window: M
+			elif mat[Vector2(row,col)] == 'M':
+				for w: int in wall_height:
+					if w >= (wall_height-(transom+window_height)) && w < wall_height-transom: continue
+					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,w+1,col)))
+					counter += 1
 	build_collision()
 
 const chunk_size = 32
