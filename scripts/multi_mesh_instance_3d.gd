@@ -41,11 +41,12 @@ const room_sizes: PackedInt32Array = [[]]
 var mat := {}
 const room_height = 200 # rows
 const room_width = 150 # cols
-const outdoor_space = 100 # width, height is room_height; for trees and stuff
 const wall_height = 10
 const transom = 3 # space above the door; prolly not really transom, but it sounds cool so
 const door_height = wall_height - transom
 const door_width = 3
+const window_width = 3
+const window_height = 2
 var rooms := {}
 var lu := []
 const max_retries = 10
@@ -228,7 +229,7 @@ func set_mat() -> void:
 	walls(room_height,room_width)
 	#cleanup()
 	#count_instances()
-	print_mat()
+	#print_mat()
 
 func set_room() -> Array:
 	var rng = RandomNumberGenerator.new()
@@ -381,7 +382,8 @@ func assign(row,col,row_size,col_size,dir) -> void:
 					if mat[Vector2(row+(r+1),col+(c+1))] != 'W':
 						mat[Vector2(row+(r+1),col+(c+1))] = 'W'
 
-# add walls
+# add inner walls (W) for exposed rooms
+# add outer walls (OW) for windows and main entrance
 func walls(row_size, col_size) -> void:
 	for row: int in row_size:
 		for col: int in col_size:
@@ -391,48 +393,36 @@ func walls(row_size, col_size) -> void:
 				continue
 			if (mat[Vector2(row,col)] == 'U' && check_directions(row,col,'F','all')) || (mat[Vector2(row,col)] == 'W' &&  check_directions(row,col,'U','all')):
 				mat[Vector2(row,col)] = 'W'
-
-# add doors to all inside walls
-func old_doors() -> void:
-	var rng = RandomNumberGenerator.new()
-	# horizontally check walls
-	for row: int in room_height:
-		for col: int in room_width:
-			if row == 0 || col == 0:
-				continue
-			
+	
+	var max := [room_height,0,room_width,0] # top, bottom, left, right
+	for row: int in row_size:
+		for col: int in col_size:
 			if mat[Vector2(row,col)] == 'W':
-				var wall = mat[Vector2(row,col)]
-				var counter = 0
-				var door_found = false
-				var r = row
-				var c = col
-				var c_door = col
-				while wall == 'W':
-					if mat[Vector2(r-1,c)] == 'D':
-						door_found = true
-						c_door = c
-						break
-						
-					counter += 1
-					c+=1
-					wall = mat[Vector2(r,c)]
+				# top
+				if max[0] >= row:
+					max[0] = row
+				# bottom
+				if max[1] <= row:
+					max[1] = row
+				# left
+				if max[2] >= col:
+					max[2] = col
+				# right
+				if max[3] <= col:
+					max[3] = col
+	
+	
+	# top and bottom walls
+	for c in range(max[2],max[3]):
+		mat[Vector2(max[0],c)] = 'OW'
+		mat[Vector2(max[1],c)] = 'OW'
 
-				if door_found:
-					var d = 0
-					while wall == 'W':
-						if d < door_width:
-							mat[Vector2(r,c_door)] = 'D'
-							c_door+=1
-							d+=1
-					
-					
-				elif counter > door_width:
-					var start_pos = rng.randi_range(0,counter-3)
-					c = col + start_pos
-					while wall == 'W':
-						mat[Vector2(r,c)] = 'D'
-						c+=1
+	# side walls
+	for r in range(max[0],max[1]):
+		mat[Vector2(r,max[2])] = 'OW'
+		mat[Vector2(r,max[3])] = 'OW'
+	
+	print(max)
 
 func doors(row,col,lu,row_size,col_size) -> void:
 	#print('lu ', lu)
@@ -577,6 +567,7 @@ func regenerate_mesh() -> void:
 
 const chunk_size = 32
 func build_collision() -> void:
+	remove_chunks()
 	var chunks := {}
 	for i in instances:
 		var instance = multimesh.get_instance_transform(i)
@@ -595,8 +586,9 @@ func build_collision() -> void:
 		create_chunk_collision(key, pos)
 	print('chunks: ', chunks.keys().size())
 
+var chunk_body : StaticBody3D
 func create_chunk_collision(chunk_key: Vector3i, positions: Array):
-	var chunk_body = StaticBody3D.new()
+	chunk_body = StaticBody3D.new()
 	chunk_body.name = "Chunk_%d_%d" % [chunk_key.x, chunk_key.y]
 	add_child(chunk_body)
 	
@@ -606,3 +598,8 @@ func create_chunk_collision(chunk_key: Vector3i, positions: Array):
 		shape.shape = box
 		shape.transform.origin = pos.origin
 		chunk_body.add_child(shape)
+
+func remove_chunks() -> void:
+	print('child count: ', get_child_count())
+	for child in get_children():
+		child.queue_free()
