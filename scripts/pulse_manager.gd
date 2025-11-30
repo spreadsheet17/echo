@@ -57,9 +57,9 @@ func emit_wave_with_params(loudness: float):
 	var width : float = lerp(1.0, 10.0, intensity)           # quiet → thin, loud → fat wave
 	var distance : float = lerp(30.0, max_distance, intensity)      # quiet → dies fast, loud → reaches far
 	var alpha : float = 1.0
-	var quiet_threshold := 0.1
-	var medium_threshold := 0.2
-	var loud_threshold := 0.4   # anything above this = red
+	var quiet_threshold := 0.05
+	var medium_threshold := 0.1
+	var loud_threshold := 0.1   # anything above this = red
 
 	# Emit
 	var origin_pos := _origin_node.global_position
@@ -68,7 +68,7 @@ func emit_wave_with_params(loudness: float):
 	if loudness < quiet_threshold:
 		color = Color(1, 1, 1)  # pure white
 	elif loudness < medium_threshold:
-		color = Color(1.0, 0.9, 0.2)  # bright yellow
+		color = Color(1.0, 1, 0.2)  # bright yellow
 	else:
 		color = Color(0.9, 0.0, 0.0)  # deep blood red
 	#_quad.get_active_material(0).set_shader_parameter("pulse_color", color)
@@ -77,7 +77,7 @@ func emit_wave_with_params(loudness: float):
 	#max_distance = distance
 	
 	_spawn_hitbox(origin_pos)
-	local_cooldown = 1.5
+	local_cooldown = 1.0
 func _spawn_hitbox(origin_pos: Vector3):
 	if pulse_hitbox_scene == null:
 		return

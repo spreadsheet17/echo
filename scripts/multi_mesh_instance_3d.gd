@@ -1,5 +1,6 @@
 @tool
 extends MultiMeshInstance3D
+var global_entrance_position: Vector3
 
 @export var reload := false :
 	set(new_reload):
@@ -469,6 +470,8 @@ func walls(row_size, col_size) -> void:
 	# place in the middle
 	var center = (width/2)+max[0]
 	var end = max[3]+outdoor_space/3
+	global_entrance_position = Vector3(center, 2.5, end + steps)
+
 	# walls
 	# front wall
 	for i in me_length:
@@ -710,3 +713,6 @@ func remove_chunks() -> void:
 	print('child count: ', get_child_count())
 	for child in get_children():
 		child.queue_free()
+
+func get_spawn_position() -> Vector3:
+	return global_entrance_position

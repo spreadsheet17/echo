@@ -8,23 +8,31 @@ extends CharacterBody3D
 @onready var pulse_mesh = $CameraPivot/Camera3D/PulseManager
 var wave_cooldown := 0
 var mic_capture
-var loudness_threshold = 0.001
+var loudness_threshold = 0.0001
 
 var pitch := 0.0
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
-
+var environment_type := "outside"
 @onready var footstep_player = $Footsteps
 
-var footstep_sounds := [
-	preload("res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_01.wav"),
-	preload("res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_02.wav"),
-	preload("res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_03.wav"),
-	preload("res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_04.wav"),
-	preload("res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_05.wav"),
-	preload("res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_06.wav"),
-	preload("res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_07.wav"),
-	preload("res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_08.wav")	
-]
+var footstep_sounds_inside := load_audio_folder("res://assets/Footsteps_Tile_Walk/")
+var footstep_sounds_outside = load_audio_folder("res://assets/Outside/")
+
+func load_audio_folder(path: String) -> Array:
+	var files := []
+	var dir := DirAccess.open(path)
+	
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if file_name.get_extension() == "wav":
+				files.append(load(path + "/" + file_name))
+			file_name = dir.get_next()
+		dir.list_dir_end()
+		
+	return files
+
 func _ready():
 	var bus_index = AudioServer.get_bus_index("Mic")
 
@@ -83,16 +91,18 @@ func _process(delta):
 			loudness += abs(mono)
 		loudness /= buffer.size() 
 		#print(loudness)
-		if (loudness-last_loudness) > loudness_threshold and wave_cooldown <= 0.0: 
+		if (loudness) > loudness_threshold and wave_cooldown <= 0.0: 
 			pulse_mesh.emit_wave_with_params(loudness)
-			print("PULSE!")
-			wave_cooldown = 1.5
+			wave_cooldown = 1.0
+			print(loudness)
 		last_loudness = loudness
 	#if Input.is_action_just_pressed("ui_accept"):
 		#pulse_mesh.emit_wave_with_params(loudness)
 		
 func play_random_footstep():
-	var sfx = footstep_sounds[randi() % footstep_sounds.size()]
+	var sfx = footstep_sounds_outside[randi() % footstep_sounds_outside.size()]
+	if environment_type == "inside":
+		sfx = footstep_sounds_inside[randi() % footstep_sounds_inside.size()]
 	footstep_player.stream = sfx
 	footstep_player.pitch_scale = randf_range(0.95, 1.05)  # slight variation
 	footstep_player.play()
