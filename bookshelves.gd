@@ -256,7 +256,9 @@ func regenerate_mesh() -> void:
 	build_collision()
 
 const chunk_size = 32
+var rotations = []
 func build_collision() -> void:
+	rotations = []
 	remove_chunks()
 	var chunks := {}
 	for i in instance_counter:
@@ -286,6 +288,7 @@ func create_chunk_collision(chunk_key: Vector3i, positions: Array):
 		var shape = CollisionShape3D.new()
 		shape.shape = mesh_shape
 		shape.transform.origin = pos.origin
+		shape.transform = pos
 		chunk_body.add_child(shape)
 
 func remove_chunks() -> void:
