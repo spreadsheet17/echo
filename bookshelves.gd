@@ -30,7 +30,7 @@ const shelf_width = 6
 var used_pos := [] # keys
 var mat_floor := []
 var instance_counter = 0
-var mesh_src = load("res://assets/bookshelf.mesh")
+var mesh_src = load("res://assets/Mesh/bookshelf.mesh")
 
 func regenerate_mesh() -> void:
 	# put back previously used positions on the map
