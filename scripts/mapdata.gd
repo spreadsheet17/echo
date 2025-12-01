@@ -8,6 +8,9 @@ var props := {}
 const prop_types = [
 	'MAP', # the procedurally generated map
 	'BS', # bookshelf
+	'T', # toilet
+	'CW', # chair with wheels
+	'TA' # table
 ]
 
 func init_props() -> void:
