@@ -26,13 +26,14 @@ func _process(delta):
 const N = 10 # no. of instances
 var mesh: MultiMesh
 const max_retries := 10
-const shelf_width = 6
+const shelf_width = 4
 var used_pos := [] # keys
 var mat_floor := []
 var instance_counter = 0
 var mesh_src = load("res://assets/Mesh/bookshelf.mesh")
 
 func regenerate_mesh() -> void:
+	var obj_scale = Vector3(0.7,0.7,0.7)
 	# put back previously used positions on the map
 	for i in range(0,used_pos.size()):
 		if used_pos[i] in Map.used_floor:
@@ -55,7 +56,7 @@ func regenerate_mesh() -> void:
 	for i in N:
 		
 		# get updated values
-		rotated = basis # reset
+		rotated = Vector3(0, 0, 0) # reset
 		mat_floor = Map.mat_floor
 		
 		# get rotation
@@ -72,7 +73,7 @@ func regenerate_mesh() -> void:
 		var col = mat_floor[pos][1]
 
 		if rot == 0: # horizontal
-			rotated = basis
+			rotated = Vector3(0, 0, 0)
 			var l = 0
 			var r = 0
 			var l_stop = false # to make sure no position is skipped
@@ -161,7 +162,7 @@ func regenerate_mesh() -> void:
 				continue
 					
 		else: # vertical
-			rotated = Basis.from_euler(Vector3(0, 90, 0) * deg_to_rad(1))
+			rotated = Vector3(0, deg_to_rad(90), 0)
 			var u = 0
 			var d = 0
 			var u_stop = false # to make sure no position is skipped
@@ -249,7 +250,7 @@ func regenerate_mesh() -> void:
 			else: # no spaces available to place the whole bookshelf
 				continue
 
-		multimesh.set_instance_transform(instance_counter, Transform3D(rotated, Vector3(Map.mat_floor[pos][0],2.5,Map.mat_floor[pos][1])))
+		multimesh.set_instance_transform(instance_counter, Transform3D(Basis.from_euler(rotated).scaled(obj_scale), Vector3(Map.mat_floor[pos][0],2.5,Map.mat_floor[pos][1])))
 		instance_counter+=1
 	
 	build_collision()
