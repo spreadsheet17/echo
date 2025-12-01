@@ -250,7 +250,6 @@ func regenerate_mesh() -> void:
 				continue
 
 		multimesh.set_instance_transform(instance_counter, Transform3D(rotated, Vector3(Map.mat_floor[pos][0],2.5,Map.mat_floor[pos][1])))
-		#multimesh.set_instance_transform(instance_counter, Transform3D(rotated, Vector3(0,2.5,0)))
 		instance_counter+=1
 	
 	build_collision()

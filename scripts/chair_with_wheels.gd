@@ -5,7 +5,7 @@ extends MultiMeshInstance3D
 	set(new_reload):
 		reload = false
 		regenerate_mesh()
-		Map.set_prop_state('T')
+		Map.set_prop_state('CW')
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -14,9 +14,9 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	if Map.get_prop_state('BS') && !Map.get_prop_state('T'):
+	if Map.get_prop_state('T') && !Map.get_prop_state('CW'):
 		regenerate_mesh()
-		Map.set_prop_state('T')
+		Map.set_prop_state('CW')
 	pass
 
 
@@ -29,7 +29,7 @@ const max_retries := 10
 var used_pos := [] # keys
 var mat_floor := []
 var instance_counter = 0
-var mesh_src = load("res://assets/Mesh/toilet.mesh")
+var mesh_src = load("res://assets/Mesh/chair_with_wheels.mesh")
 
 func regenerate_mesh() -> void:
 	# put back previously used positions on the map
@@ -52,7 +52,7 @@ func regenerate_mesh() -> void:
 	const degs = [0, 90, 180, 270, 360]
 	var deg = degs.pick_random()
 	var rotation = Vector3(deg_to_rad(-90), 0, deg_to_rad(deg))
-	var scale = Vector3(200, 200, 200)
+	var scale = Vector3(150, 150, 150)
 	for i in N:
 		# get updated values
 		mat_floor = Map.mat_floor
@@ -67,10 +67,10 @@ func regenerate_mesh() -> void:
 		var row = mat_floor[pos][0]
 		var col = mat_floor[pos][1]
 		used_pos.append([row,col])
-		
+
 		deg = degs.pick_random()
 		rotation = Vector3(deg_to_rad(-90), 0, deg_to_rad(deg))
-		multimesh.set_instance_transform(instance_counter, Transform3D(Basis.from_euler(rotation).scaled(scale), Vector3(row,2.5,col)))
+		multimesh.set_instance_transform(instance_counter, Transform3D(Basis.from_euler(rotation).scaled(scale), Vector3(row,3,col)))
 		instance_counter+=1
 	
 	build_collision()
