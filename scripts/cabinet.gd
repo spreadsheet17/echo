@@ -5,7 +5,7 @@ extends MultiMeshInstance3D
 	set(new_reload):
 		reload = false
 		regenerate_mesh()
-		Map.set_prop_state('TA')
+		Map.set_prop_state('CB')
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -14,25 +14,25 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	if Map.get_prop_state('CW') && !Map.get_prop_state('TA'):
+	if Map.get_prop_state('TA') && !Map.get_prop_state('CB'):
 		regenerate_mesh()
-		Map.set_prop_state('TA')
+		Map.set_prop_state('CB')
 
 
 # ============================================
 #             MULTIMESH STUFF
 # ============================================
-const N = 10 # no. of instances
+const N = 15 # no. of instances
 var mesh: MultiMesh
 const max_retries := 10
-const obj_width = 4
+const shelf_width = 4
 var used_pos := [] # keys
 var mat_floor := []
 var instance_counter = 0
-var mesh_src = load("res://assets/Mesh/table.mesh")
+var mesh_src = load("res://assets/Mesh/cabinet.mesh")
 
 func regenerate_mesh() -> void:
-	var obj_scale = Vector3(150,150,150)
+	var obj_scale = Vector3(0.5,0.5,0.5)
 	# put back previously used positions on the map
 	for i in range(0,used_pos.size()):
 		if used_pos[i] in Map.used_floor:
@@ -50,7 +50,7 @@ func regenerate_mesh() -> void:
 	multimesh.instance_count = 0
 	multimesh.instance_count = N
 	var rng = RandomNumberGenerator.new()
-	var obj_half = obj_width/2
+	var shelf_half = shelf_width/2
 	var rotated = basis
 	for i in N:
 		
@@ -72,13 +72,13 @@ func regenerate_mesh() -> void:
 		var col = mat_floor[pos][1]
 
 		if rot == 0: # horizontal
-			rotated = Vector3(deg_to_rad(-90), deg_to_rad(90), 0)
+			rotated = Vector3(0, 0, 0)
 			var l = 0
 			var r = 0
 			var l_stop = false # to make sure no position is skipped
 			var r_stop = false
 			# iterate through row
-			for w in range(1, obj_half+1):
+			for w in range(1, shelf_half+1):
 				# check left
 				if [row-w,col] in mat_floor && !l_stop:
 					l+=1
@@ -88,11 +88,11 @@ func regenerate_mesh() -> void:
 					r+=1
 				else: r_stop = true
 				if l_stop && r_stop: break # stop if both directions don't have enough space
-			if l == obj_half && r == obj_half: # pos is ok
+			if l == shelf_half && r == shelf_half: # pos is ok
 				# use center pos
 				Map.use_floor([row,col])
 				used_pos.append([row,col])
-				for w in range(1, obj_half+1):
+				for w in range(1, shelf_half+1):
 					#Map.mat[Vector2(row-w,col)] = 'P' # prop (P)
 					#Map.mat[Vector2(row+w,col)] = 'P'
 
@@ -101,9 +101,9 @@ func regenerate_mesh() -> void:
 					Map.use_floor([row+w,col])
 					used_pos.append([row-w,col])
 					used_pos.append([row+w,col])
-			elif l < obj_half && r == obj_half: # left encountered something
+			elif l < shelf_half && r == shelf_half: # left encountered something
 				# check how many spaces are needed
-				var spaces_needed = obj_half - l
+				var spaces_needed = shelf_half - l
 				var counter = 0
 				# check the right side
 				for sn in range(1,spaces_needed+1):
@@ -119,7 +119,7 @@ func regenerate_mesh() -> void:
 					# get all needed positions
 					Map.use_floor([row,col])
 					used_pos.append([row,col])
-					for w in range(1, obj_half+1):
+					for w in range(1, shelf_half+1):
 						#Map.mat[Vector2(row-w,col)] = 'P' # prop (P)
 						#Map.mat[Vector2(row+w,col)] = 'P'
 
@@ -129,9 +129,9 @@ func regenerate_mesh() -> void:
 						used_pos.append([row-w,col])
 						used_pos.append([row+w,col])
 				else: continue
-			elif l == obj_half && r < obj_half: # right encountered something
+			elif l == shelf_half && r < shelf_half: # right encountered something
 				# check how many spaces are needed
-				var spaces_needed = obj_half - r
+				var spaces_needed = shelf_half - r
 				var counter = 0
 				# check if the left side has free space
 				for sn in range(1,spaces_needed+1):
@@ -147,7 +147,7 @@ func regenerate_mesh() -> void:
 					Map.use_floor([row,col])
 					used_pos.append([row,col])
 					# get all needed positions
-					for w in range(1, obj_half+1):
+					for w in range(1, shelf_half+1):
 						#Map.mat[Vector2(row-w,col)] = 'P' # prop (P)
 						#Map.mat[Vector2(row+w,col)] = 'P'
 
@@ -161,13 +161,13 @@ func regenerate_mesh() -> void:
 				continue
 					
 		else: # vertical
-			rotated = Vector3(deg_to_rad(-90), deg_to_rad(90), 0)
+			rotated = Vector3(0, deg_to_rad(90), 0)
 			var u = 0
 			var d = 0
 			var u_stop = false # to make sure no position is skipped
 			var d_stop = false
 			# iterate through col
-			for w in range(1, obj_half+1):
+			for w in range(1, shelf_half+1):
 				# check up
 				if [row,col-w] in mat_floor && !u_stop:
 					u+=1
@@ -177,11 +177,11 @@ func regenerate_mesh() -> void:
 					d+=1
 				else: d_stop = true
 				if u_stop && d_stop: break # stop if both directions don't have enough space
-			if u == obj_half && d == obj_half: # pos is ok
+			if u == shelf_half && d == shelf_half: # pos is ok
 				# use center pos
 				Map.use_floor([row,col])
 				used_pos.append([row,col])
-				for w in range(1, obj_half+1):
+				for w in range(1, shelf_half+1):
 					#Map.mat[Vector2(row-w,col)] = 'P' # prop (P)
 					#Map.mat[Vector2(row+w,col)] = 'P'
 
@@ -190,9 +190,9 @@ func regenerate_mesh() -> void:
 					Map.use_floor([row,col+w])
 					used_pos.append([row,col-w])
 					used_pos.append([row,col+w])
-			elif u < obj_half && d == obj_half: # up encountered something
+			elif u < shelf_half && d == shelf_half: # up encountered something
 				# check how many spaces are needed
-				var spaces_needed = obj_half - u
+				var spaces_needed = shelf_half - u
 				var counter = 0
 				# check the bottom
 				for sn in range(1,spaces_needed+1):
@@ -208,7 +208,7 @@ func regenerate_mesh() -> void:
 					# get all needed positions
 					Map.use_floor([row,col])
 					used_pos.append([row,col])
-					for w in range(1, obj_half+1):
+					for w in range(1, shelf_half+1):
 						#Map.mat[Vector2(row-w,col)] = 'P' # prop (P)
 						#Map.mat[Vector2(row+w,col)] = 'P'
 
@@ -218,9 +218,9 @@ func regenerate_mesh() -> void:
 						used_pos.append([row,col-w])
 						used_pos.append([row,col+w])
 				else: continue
-			elif u == obj_half && d < obj_half: # right encountered something
+			elif u == shelf_half && d < shelf_half: # right encountered something
 				# check how many spaces are needed
-				var spaces_needed = obj_half - d
+				var spaces_needed = shelf_half - d
 				var counter = 0
 				# check if the left side has free space
 				for sn in range(1,spaces_needed+1):
@@ -236,7 +236,7 @@ func regenerate_mesh() -> void:
 					Map.use_floor([row,col])
 					used_pos.append([row,col])
 					# get all needed positions
-					for w in range(1, obj_half+1):
+					for w in range(1, shelf_half+1):
 						#Map.mat[Vector2(row-w,col)] = 'P' # prop (P)
 						#Map.mat[Vector2(row+w,col)] = 'P'
 
@@ -249,7 +249,7 @@ func regenerate_mesh() -> void:
 			else: # no spaces available to place the whole bookshelf
 				continue
 
-		multimesh.set_instance_transform(instance_counter, Transform3D(Basis.from_euler(rotated).scaled(obj_scale), Vector3(Map.mat_floor[pos][0],3,Map.mat_floor[pos][1])))
+		multimesh.set_instance_transform(instance_counter, Transform3D(Basis.from_euler(rotated).scaled(obj_scale), Vector3(Map.mat_floor[pos][0],1.7,Map.mat_floor[pos][1])))
 		instance_counter+=1
 	
 	build_collision()

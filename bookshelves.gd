@@ -17,13 +17,12 @@ func _process(delta):
 	if Map.get_prop_state('MAP') && !Map.get_prop_state('BS'):
 		regenerate_mesh()
 		Map.set_prop_state('BS')
-	pass
 
 
 # ============================================
 #             MULTIMESH STUFF
 # ============================================
-const N = 10 # no. of instances
+const N = 15 # no. of instances
 var mesh: MultiMesh
 const max_retries := 10
 const shelf_width = 4
@@ -250,7 +249,7 @@ func regenerate_mesh() -> void:
 			else: # no spaces available to place the whole bookshelf
 				continue
 
-		multimesh.set_instance_transform(instance_counter, Transform3D(Basis.from_euler(rotated).scaled(obj_scale), Vector3(Map.mat_floor[pos][0],2.5,Map.mat_floor[pos][1])))
+		multimesh.set_instance_transform(instance_counter, Transform3D(Basis.from_euler(rotated).scaled(obj_scale), Vector3(Map.mat_floor[pos][0],2.3,Map.mat_floor[pos][1])))
 		instance_counter+=1
 	
 	build_collision()

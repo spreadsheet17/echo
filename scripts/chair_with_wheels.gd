@@ -17,13 +17,12 @@ func _process(delta):
 	if Map.get_prop_state('T') && !Map.get_prop_state('CW'):
 		regenerate_mesh()
 		Map.set_prop_state('CW')
-	pass
 
 
 # ============================================
 #             MULTIMESH STUFF
 # ============================================
-const N = 10 # no. of instances
+const N = 20 # no. of instances
 var mesh: MultiMesh
 const max_retries := 10
 var used_pos := [] # keys
