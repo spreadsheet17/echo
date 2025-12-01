@@ -1,15 +1,17 @@
 shader_type spatial;
-render_mode unshaded;
+//render_mode unshaded;
 
 // --- CONFIG ---
 uniform int pulse_count = 0;
 
-uniform vec3 pulse_origins[16];
-uniform float pulse_radii[16];
-uniform float pulse_widths[16];
+uniform vec3 pulse_origins[50];
+uniform float pulse_radii[50];
+uniform float pulse_widths[50];
 uniform float default_pulse_width = 10.0;
 
-uniform vec4 pulse_colors[16];
+uniform vec4 pulse_colors[50];
+uniform vec4 pulse_alphas[50];
+
 uniform float world_scale = 0.95;
 uniform float emission_strength = 2.0; // <--- NEW
 
@@ -57,7 +59,8 @@ void fragment() {
         float check = when_lt(dist, 0.0) * when_gt(dist, -width);
         float pct = abs(dist) / abs(width);
         float mix_ratio = clamp(check - pct, 0.0, 1.0);
-
+		float fade = pulse_alphas[i].a;
+		mix_ratio *= fade;
         final_mix = max(final_mix, mix_ratio);
 
         // blended color

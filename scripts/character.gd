@@ -6,13 +6,32 @@ extends CharacterBody3D
 
 @onready var camera = $CameraPivot/Camera3D
 @onready var pulse_mesh = $CameraPivot/Camera3D/PulseManager
-var wave_cooldown := 0.0
+var wave_cooldown := 0
 var mic_capture
-var loudness_threshold = 0.02
+var loudness_threshold = 0.0001
 
 var pitch := 0.0
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+var environment_type := "outside"
+@onready var footstep_player = $Footsteps
 
+var footstep_sounds_inside := load_audio_folder("res://assets/Footsteps_Tile_Walk/")
+var footstep_sounds_outside = load_audio_folder("res://assets/Outside/")
+
+func load_audio_folder(path: String) -> Array:
+	var files := []
+	var dir := DirAccess.open(path)
+	
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if file_name.get_extension() == "wav":
+				files.append(load(path + "/" + file_name))
+			file_name = dir.get_next()
+		dir.list_dir_end()
+		
+	return files
 
 func _ready():
 	var bus_index = AudioServer.get_bus_index("Mic")
@@ -32,6 +51,9 @@ func _unhandled_input(event):
 		camera.rotation.x = pitch
 
 # --- Movement ---
+var step_distance := 10
+var step_accum := 0.0
+
 func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -45,12 +67,20 @@ func _physics_process(delta):
 	else:
 		velocity.x = move_toward(velocity.x, 0, speed)
 		velocity.z = move_toward(velocity.z, 0, speed)
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	if is_on_floor() and horizontal_speed > 0.1:
+		step_accum += horizontal_speed * delta
+		
+		if step_accum >= step_distance:
+			step_accum = 0
+			play_random_footstep()
+
 	move_and_slide()
 
 var last_loudness := 0.0
 func _process(delta):
 	wave_cooldown -= delta
-	if mic_capture: 
+	if mic_capture and wave_cooldown <= 0: 
 		var buffer = mic_capture.get_buffer(256) 
 		if buffer.size() == 0: 
 			return 
@@ -60,10 +90,19 @@ func _process(delta):
 			var mono = (sample.x + sample.y)
 			loudness += abs(mono)
 		loudness /= buffer.size() 
-		print(loudness)
-		if (loudness-last_loudness) > loudness_threshold and wave_cooldown <= 0.0: 
+		#print(loudness)
+		if (loudness) > loudness_threshold and wave_cooldown <= 0.0: 
 			pulse_mesh.emit_wave_with_params(loudness)
-			wave_cooldown = 1
+			wave_cooldown = 1.0
+			print(loudness)
 		last_loudness = loudness
 	#if Input.is_action_just_pressed("ui_accept"):
 		#pulse_mesh.emit_wave_with_params(loudness)
+		
+func play_random_footstep():
+	var sfx = footstep_sounds_outside[randi() % footstep_sounds_outside.size()]
+	if environment_type == "inside":
+		sfx = footstep_sounds_inside[randi() % footstep_sounds_inside.size()]
+	footstep_player.stream = sfx
+	footstep_player.pitch_scale = randf_range(0.95, 1.05)  # slight variation
+	footstep_player.play()
