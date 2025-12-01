@@ -44,6 +44,7 @@ var mat := {}
 const room_height = 200 # rows
 const room_width = 150 # cols
 const outdoor_space = 100
+const exit_space = outdoor_space/3
 const wall_height = 10
 const transom = 3 # space above the door; prolly not really transom, but it sounds cool so
 const door_height = wall_height - transom
@@ -56,6 +57,7 @@ const steps = 1
 var rooms := {}
 var lu := []
 const max_retries = 10
+const me_custom_door_width = 0
 
 class Room:
 	var center_row = 0
@@ -156,7 +158,7 @@ func set_mat() -> void:
 	# initialize mat
 	# U - unset - initial state of all room
 	for row: int in room_height:
-		for col: int in room_width + outdoor_space:
+		for col: int in exit_space + room_width + outdoor_space:
 			mat[Vector2(row,col)] = 'U'
 	
 	# set walls for each room
@@ -232,7 +234,7 @@ func set_mat() -> void:
 			else:
 				new_room.find_bounds(mat,cT,cL,'lu')
 		doors(row,col,Vector2(new_room.hbound[0], new_room.vbound[0]),cT+cB,cL+cR)
-	walls(room_height,room_width)
+	walls(room_height,outdoor_space+room_width+outdoor_space)
 	Map.set_mat(mat)
 
 func set_room() -> Array:
@@ -240,12 +242,12 @@ func set_room() -> Array:
 	var half_height = room_height/2
 	var half_width = room_width/2
 	var row_min = (half_height/2)-1
-	var col_min = (half_width/2)-1
+	var col_min = exit_space + (half_width/2)-1
 	# get randomized row and col values
-	var row = rng.randi_range(49,149)
-	var col = rng.randi_range(24,74)
+	var row = rng.randi_range(row_min, row_min + half_height)
+	var col = rng.randi_range(col_min, col_min + half_width)
 	# get randomized room type
-	var rtype = rng.randi_range(0,6)
+	var rtype = rng.randi_range(0,room_types.size()-1)
 
 	# make sure to set unique rooms
 	# and keep new rooms out of already existing rooms
@@ -390,7 +392,7 @@ func assign(row,col,row_size,col_size,dir) -> void:
 # add outer walls (OW) for windows and main entrance
 func walls(row_size, col_size) -> void:
 	for row: int in row_size:
-		for col: int in col_size:
+		for col: int in exit_space + room_width + outdoor_space:
 			# check in all directions if room has incomplete walls (U next to F)
 			# and if a wall is an outer wall (for assigning windows and doors)
 			if row == 0 || col == 0 || row == row_size-1 || col == col_size-1:
@@ -465,28 +467,43 @@ func walls(row_size, col_size) -> void:
 
 	print('bounds (lrtb): ', max)
 	
-	# ---- MAIN ENTRANCE ----
+	# ---- MAIN ENTRANCE AND EXIT ----
 	var me_length = length/4
 	# place in the middle
 	var center = (width/2)+max[0]
 	var end = max[3]+outdoor_space/3
+	var other_end = max[2]-outdoor_space/3 # for the exit
 	global_entrance_position = Vector3(center, 2.5, end + steps)
+	var main_door_width = door_width + me_custom_door_width
 
-	# walls
+	# outer walls, the ones with windows
 	# front wall
 	for i in me_length:
+		# entrance
 		mat[Vector2(center-i,end)] = 'OW'
 		mat[Vector2(center+i,end)] = 'OW'
+		# exit
+		mat[Vector2(center-i,other_end)] = 'OW'
+		mat[Vector2(center+i,other_end)] = 'OW'
+	
 	# sides
 	for i in end-max[3]:
+		# entrance
 		mat[Vector2(center-(me_length-1),max[3]+i)] = 'OW'
 		mat[Vector2(center+(me_length-1),max[3]+i)] = 'OW'
+	
+	for i in max[2]-other_end:
+		# exit
+		mat[Vector2(center-(me_length-1),max[2]-i)] = 'OW'
+		mat[Vector2(center+(me_length-1),max[2]-i)] = 'OW'
 
-	# outer wall
+	# door to the house
 	var type = 'D'
-	for i in door_width:
-		if i == door_width-1: type = 'W'
+	for i in main_door_width:
+		if i == main_door_width-1: type = 'W'
 		else: type = 'D'
+		
+		# entrance
 		mat[Vector2(center-i,end)] = type
 		mat[Vector2(center+i,end)] = type
 		mat[Vector2(center-i,max[3])] = type
@@ -496,13 +513,25 @@ func walls(row_size, col_size) -> void:
 			mat[Vector2(center-i,max[3]-1)] = type
 		if mat[Vector2(center+i,max[3]-1)] in ['W', 'OW', 'M']:
 			mat[Vector2(center+i,max[3]-1)] = type
+		
+		# exit
+		mat[Vector2(center-i,other_end)] = type
+		mat[Vector2(center+i,other_end)] = type
+		mat[Vector2(center-i,max[2])] = type
+		mat[Vector2(center+i,max[2])] = type
+		
+		if mat[Vector2(center-i,max[2]+1)] in ['W', 'OW', 'M']:
+			mat[Vector2(center-i,max[2]+1)] = type
+		if mat[Vector2(center+i,max[2]+1)] in ['W', 'OW', 'M']:
+			mat[Vector2(center+i,max[2]+1)] = type
 	
 	# door and corridor
+	# entrance
 	for i in end-max[3]:
-		for d in door_width:
-			if d == door_width-1:
-				mat[Vector2(center-(door_width-1),max[3]+i)] = 'W'
-				mat[Vector2(center+(door_width-1),max[3]+i)] = 'W'
+		for d in main_door_width:
+			if d == main_door_width-1:
+				mat[Vector2(center-(main_door_width-1),max[3]+i)] = 'W'
+				mat[Vector2(center+(main_door_width-1),max[3]+i)] = 'W'
 			elif i == end-max[3]-1:
 				mat[Vector2(center-d,max[3]+i)] = 'D'
 				mat[Vector2(center+d,max[3]+i)] = 'D'
@@ -510,13 +539,33 @@ func walls(row_size, col_size) -> void:
 				mat[Vector2(center-d,max[3]+i)] = 'D'
 				mat[Vector2(center+d,max[3]+i)] = 'D'
 			else:
-				mat[Vector2(center-d,max[3]+i)] = 'F'
-				mat[Vector2(center+d,max[3]+i)] = 'F'
+				mat[Vector2(center-d,max[3]+i)] = 'OF'
+				mat[Vector2(center+d,max[3]+i)] = 'OF'
+	# exit
+	for i in max[2]-other_end:
+		for d in main_door_width:
+			if d == main_door_width-1:
+				mat[Vector2(center-(main_door_width-1),max[2]-i)] = 'W'
+				mat[Vector2(center+(main_door_width-1),max[2]-i)] = 'W'
+			elif i == end-max[3]-1:
+				mat[Vector2(center-d,max[2]-i)] = 'D'
+				mat[Vector2(center+d,max[2]-i)] = 'D'
+			elif i == 0:
+				mat[Vector2(center-d,max[2]-i)] = 'D'
+				mat[Vector2(center+d,max[2]-i)] = 'D'
+			else:
+				mat[Vector2(center-d,max[2]-i)] = 'OF'
+				mat[Vector2(center+d,max[2]-i)] = 'OF'
 
-	# step
-	for d in door_width:
-		mat[Vector2(center-d,end+steps)] = 'F'
-		mat[Vector2(center+d,end+steps)] = 'F'
+	# step -> changed to wall to block user from going out
+	for d in main_door_width:
+		# entrance
+		mat[Vector2(center-d,end+steps)] = 'W'
+		mat[Vector2(center+d,end+steps)] = 'W'
+		
+		# exit
+		mat[Vector2(center-d,other_end-steps)] = 'W'
+		mat[Vector2(center+d,other_end-steps)] = 'W'
 
 
 func doors(row,col,lu,row_size,col_size) -> void:
@@ -612,7 +661,7 @@ func count_instances() -> int:
 	var floor = [] # coordinates of floors
 	var instance_count : int = 0
 	for row in room_height:
-		for col in room_width + outdoor_space:
+		for col in exit_space + room_width + outdoor_space:
 			if mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'OW':
 				instance_count += wall_height
 			elif mat[Vector2(row,col)] == 'D':
@@ -621,10 +670,11 @@ func count_instances() -> int:
 				instance_count += (wall_height-window_height)
 			
 			# floor
-			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C':
+			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C' || mat[Vector2(row,col)] == 'OF':
 				instance_count += 1
-				if col < outdoor_space:
+				if mat[Vector2(row,col)] == 'F':
 					floor.append([row,col])
+			#instance_count += 1 # ceiling count
 	Map.set_floors(floor)
 	
 	print('instance count: ', instance_count)
@@ -633,7 +683,7 @@ func count_instances() -> int:
 func print_mat():
 	for i: int in room_height:
 		var str = ""
-		for j: int in room_width + outdoor_space:
+		for j: int in exit_space + room_width + outdoor_space:
 			if mat[Vector2(i,j)] == 'U': continue
 			str += mat[Vector2(i,j)]
 		print(str)
@@ -654,7 +704,7 @@ func regenerate_mesh() -> void:
 	instances = count_instances()
 	var counter = 0
 	for row: int in room_height:
-		for col: int in room_width + outdoor_space:
+		for col: int in exit_space + room_width + outdoor_space:
 			# wall: W
 			# outer wall: OW
 			if mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'OW':
@@ -679,9 +729,13 @@ func regenerate_mesh() -> void:
 					counter += 1
 			
 			# floor
-			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C':
+			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C' || mat[Vector2(row,col)] == 'OF':
 				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,1,col)))
 				counter += 1
+
+			# ceiling
+			#multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,wall_height,col)))
+			#counter += 1
 	build_collision()
 
 const chunk_size = 32
