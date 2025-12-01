@@ -234,7 +234,7 @@ func set_mat() -> void:
 			else:
 				new_room.find_bounds(mat,cT,cL,'lu')
 		doors(row,col,Vector2(new_room.hbound[0], new_room.vbound[0]),cT+cB,cL+cR)
-	walls(room_height,outdoor_space+room_width+outdoor_space)
+	walls(room_height,exit_space+room_width+outdoor_space)
 	Map.set_mat(mat)
 
 func set_room() -> Array:

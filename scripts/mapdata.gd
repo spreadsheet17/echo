@@ -10,7 +10,7 @@ const prop_types = [
 	'BS', # bookshelf
 	'T', # toilet
 	'CW', # chair with wheels
-	'F' # fridge
+	'TA' # table
 ]
 
 func init_props() -> void:
