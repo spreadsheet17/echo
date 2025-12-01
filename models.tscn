@@ -1,5 +1,3 @@
-[gd_scene load_steps=2 format=3 uid="uid://baqss08egf3dm"]
-
-[ext_resource type="PackedScene" uid="uid://bps5mq2wr31ab" path="res://assets/Models pack psx/Models/models.fbx" id="1_lu8lw"]
-
-[node name="models" instance=ExtResource("1_lu8lw")]
+version https://git-lfs.github.com/spec/v1
+oid sha256:bccc8c00c0db2db6c35f4a713234c9e17bbfcd756918a713acb745cd81377c74
+size 241
