@@ -16,6 +16,8 @@ func _ready():
 	update_global()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
+var t := 0.0
+var interval := 60.0 # seconds
 func _process(delta):
 	pass
 
@@ -498,10 +500,10 @@ func walls(row_size, col_size) -> void:
 		mat[Vector2(center+(me_length-1),max[2]-i)] = 'OW'
 
 	# door to the house
-	var type = 'D'
+	var type = 'OD'
 	for i in main_door_width:
 		if i == main_door_width-1: type = 'W'
-		else: type = 'D'
+		else: type = 'OD'
 		
 		# entrance
 		mat[Vector2(center-i,end)] = type
@@ -514,6 +516,10 @@ func walls(row_size, col_size) -> void:
 		if mat[Vector2(center+i,max[3]-1)] in ['W', 'OW', 'M']:
 			mat[Vector2(center+i,max[3]-1)] = type
 		
+		# make sure space after door is clear
+		mat[Vector2(center-i,max[3]-2)] = 'OF'
+		mat[Vector2(center+i,max[3]-2)] = 'OF'
+		
 		# exit
 		mat[Vector2(center-i,other_end)] = type
 		mat[Vector2(center+i,other_end)] = type
@@ -524,6 +530,10 @@ func walls(row_size, col_size) -> void:
 			mat[Vector2(center-i,max[2]+1)] = type
 		if mat[Vector2(center+i,max[2]+1)] in ['W', 'OW', 'M']:
 			mat[Vector2(center+i,max[2]+1)] = type
+		
+		# make sure space before door is clear
+		mat[Vector2(center-i,max[2]+2)] = 'OF'
+		mat[Vector2(center+i,max[2]+2)] = 'OF'
 	
 	# door and corridor
 	# entrance
@@ -664,17 +674,20 @@ func count_instances() -> int:
 		for col in exit_space + room_width + outdoor_space:
 			if mat[Vector2(row,col)] == 'W' || mat[Vector2(row,col)] == 'OW':
 				instance_count += wall_height
+				instance_count += 1 # ceiling count
 			elif mat[Vector2(row,col)] == 'D':
 				instance_count += transom+2
+				instance_count += 1 # ceiling count
 			elif mat[Vector2(row,col)] == 'M':
 				instance_count += (wall_height-window_height)
+				instance_count += 1 # ceiling count
 			
 			# floor
 			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C' || mat[Vector2(row,col)] == 'OF':
 				instance_count += 1
+				instance_count += 1 # ceiling count
 				if mat[Vector2(row,col)] == 'F':
 					floor.append([row,col])
-			#instance_count += 1 # ceiling count
 	Map.set_floors(floor)
 	
 	print('instance count: ', instance_count)
@@ -711,6 +724,9 @@ func regenerate_mesh() -> void:
 				for w: int in wall_height:
 					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,w+1,col)))
 					counter += 1
+				# ceiling
+				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,wall_height,col)))
+				counter += 1
 
 			# door: D
 			elif mat[Vector2(row,col)] == 'D':
@@ -718,7 +734,12 @@ func regenerate_mesh() -> void:
 				for d: int in transom+1:
 					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,d+door_height,col)))
 					counter += 1
+				
+				# floor
 				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,1,col)))
+				counter += 1
+				# ceiling
+				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,wall_height,col)))
 				counter += 1
 			
 			# window: M
@@ -727,15 +748,19 @@ func regenerate_mesh() -> void:
 					if w >= (wall_height-(transom+window_height)) && w < wall_height-transom: continue
 					multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,w+1,col)))
 					counter += 1
+					
+				# ceiling
+				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,wall_height,col)))
+				counter += 1
 			
 			# floor
 			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C' || mat[Vector2(row,col)] == 'OF':
 				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,1,col)))
 				counter += 1
-
-			# ceiling
-			#multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,wall_height,col)))
-			#counter += 1
+				
+				# ceiling
+				multimesh.set_instance_transform(counter, Transform3D(basis, Vector3(row,wall_height,col)))
+				counter += 1
 	build_collision()
 
 const chunk_size = 32

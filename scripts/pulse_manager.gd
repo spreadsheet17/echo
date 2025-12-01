@@ -86,7 +86,7 @@ func _process_mic_input(_delta):
 		
 		if loudness > loudness_threshold:
 			emit_wave_with_params(loudness, _player_origin_node.global_position)
-			mic_wave_cooldown = 0.3 # Reduced cooldown for rapid mic pulses (can be adjusted)
+			mic_wave_cooldown = 2.0 # Reduced cooldown for rapid mic pulses (can be adjusted)
 			print("MIC PULSE: ", loudness)
 
 
@@ -114,13 +114,13 @@ func emit_wave_with_params(loudness: float, origin_pos: Vector3):
 		return# too soon
 
 	# Calculate pulse parameters based on loudness (same logic as before)
-	var intensity : float = clamp(loudness * 2.0, 0.0, 1.0)
+	var intensity : float = clamp(loudness * 6.0, 0.0, 1.0)
 	var speed : float = lerp(5.0, 50.0, intensity)
 	var width : float = lerp(1.0, 10.0, intensity)
 	var distance : float = lerp(30.0, max_distance, intensity)
 	var alpha : float = 1.0
-	var quiet_threshold := 0.05
-	var medium_threshold := 0.1
+	var quiet_threshold := 0.005
+	var medium_threshold := 0.015
 	# var loud_threshold := 0.1 # Not explicitly used, but can be if needed
 
 	var color : Color = Color(1, 1, 1)

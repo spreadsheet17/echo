@@ -3,6 +3,7 @@ extends Node
 
 var mat := {}
 var mat_floor := [] # from map generation
+var respawn = false
 var used_floor := [] # array of coords; updated during props placement
 var props := {}
 const prop_types = [
@@ -10,7 +11,8 @@ const prop_types = [
 	'BS', # bookshelf
 	'T', # toilet
 	'CW', # chair with wheels
-	'TA' # table
+	'TA', # table
+	'CB' # cabinet
 ]
 
 func init_props() -> void:
@@ -21,7 +23,10 @@ func get_prop_state(key: String) -> bool:
 	return props[key]
 
 func set_prop_state(key: String) -> void:
-	props[key] = true
+	props[key] = !props[key]
+
+func set_respawn(val: bool) -> void:
+	respawn = val
 
 func set_mat(new_mat) -> void:
 	mat = new_mat
