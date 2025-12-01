@@ -7,11 +7,13 @@ var global_entrance_position: Vector3
 		reload = false
 		set_mat()
 		regenerate_mesh()
+		update_global()
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	set_mat()
 	regenerate_mesh()
+	update_global()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -231,9 +233,7 @@ func set_mat() -> void:
 				new_room.find_bounds(mat,cT,cL,'lu')
 		doors(row,col,Vector2(new_room.hbound[0], new_room.vbound[0]),cT+cB,cL+cR)
 	walls(room_height,room_width)
-	#cleanup()
-	#count_instances()
-	#print_mat()
+	Map.set_mat(mat)
 
 func set_room() -> Array:
 	var rng = RandomNumberGenerator.new()
@@ -482,7 +482,7 @@ func walls(row_size, col_size) -> void:
 		mat[Vector2(center-(me_length-1),max[3]+i)] = 'OW'
 		mat[Vector2(center+(me_length-1),max[3]+i)] = 'OW'
 
-	# door and corridor
+	# outer wall
 	var type = 'D'
 	for i in door_width:
 		if i == door_width-1: type = 'W'
@@ -496,19 +496,20 @@ func walls(row_size, col_size) -> void:
 			mat[Vector2(center-i,max[3]-1)] = type
 		if mat[Vector2(center+i,max[3]-1)] in ['W', 'OW', 'M']:
 			mat[Vector2(center+i,max[3]-1)] = type
+	
+	# door and corridor
 	for i in end-max[3]:
 		for d in door_width:
 			if d == door_width-1:
 				mat[Vector2(center-(door_width-1),max[3]+i)] = 'W'
 				mat[Vector2(center+(door_width-1),max[3]+i)] = 'W'
 			elif i == end-max[3]-1:
-				mat[Vector2(center-(door_width-1),max[3]+i)] = 'D'
-				mat[Vector2(center+(door_width-1),max[3]+i)] = 'D'
+				mat[Vector2(center-d,max[3]+i)] = 'D'
+				mat[Vector2(center+d,max[3]+i)] = 'D'
+			elif i == 0:
+				mat[Vector2(center-d,max[3]+i)] = 'D'
+				mat[Vector2(center+d,max[3]+i)] = 'D'
 			else:
-				if i == 0:
-					mat[Vector2(center-d,max[3]+i)] = 'D'
-					mat[Vector2(center+d,max[3]+i)] = 'D'
-					continue
 				mat[Vector2(center-d,max[3]+i)] = 'F'
 				mat[Vector2(center+d,max[3]+i)] = 'F'
 
@@ -516,6 +517,7 @@ func walls(row_size, col_size) -> void:
 	for d in door_width:
 		mat[Vector2(center-d,end+steps)] = 'F'
 		mat[Vector2(center+d,end+steps)] = 'F'
+
 
 func doors(row,col,lu,row_size,col_size) -> void:
 	#print('lu ', lu)
@@ -607,6 +609,7 @@ func check_directions(row,col,to_check,dir) -> bool:
 		return counter == 8
 
 func count_instances() -> int:
+	var floor = [] # coordinates of floors
 	var instance_count : int = 0
 	for row in room_height:
 		for col in room_width + outdoor_space:
@@ -616,8 +619,13 @@ func count_instances() -> int:
 				instance_count += transom+2
 			elif mat[Vector2(row,col)] == 'M':
 				instance_count += (wall_height-window_height)
-			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C': # floor
+			
+			# floor
+			elif mat[Vector2(row,col)] == 'F' || mat[Vector2(row,col)][0] == 'C':
 				instance_count += 1
+				if col < outdoor_space:
+					floor.append([row,col])
+	Map.set_floors(floor)
 	
 	print('instance count: ', instance_count)
 	return instance_count
@@ -626,6 +634,7 @@ func print_mat():
 	for i: int in room_height:
 		var str = ""
 		for j: int in room_width + outdoor_space:
+			if mat[Vector2(i,j)] == 'U': continue
 			str += mat[Vector2(i,j)]
 		print(str)
 
@@ -714,5 +723,11 @@ func remove_chunks() -> void:
 	for child in get_children():
 		child.queue_free()
 
+func update_global() -> void:
+	# initialize props
+	Map.init_props() # set all states to false
+	# set map prop to true, to trigger creation of other props
+	Map.set_prop_state('MAP')
+ 
 func get_spawn_position() -> Vector3:
 	return global_entrance_position
