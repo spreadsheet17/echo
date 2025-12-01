@@ -470,7 +470,7 @@ func walls(row_size, col_size) -> void:
 	# place in the middle
 	var center = (width/2)+max[0]
 	var end = max[3]+outdoor_space/3
-	global_entrance_position = Vector3(center, 2.5, end + steps)
+	global_entrance_position = Vector3(center, 2.5, end - steps)
 
 	# walls
 	# front wall

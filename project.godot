@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 driver/enable_input=true
 
+[autoload]
+
+Map="*res://scripts/mapdata.gd"
+
 [filesystem]
 
 import/fbx/enabled=false
