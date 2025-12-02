@@ -11,24 +11,122 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 var environment_type := "outside"
 @onready var footstep_player = $Footsteps
 
-var footstep_sounds_inside := load_audio_folder("res://assets/Footsteps_Tile_Walk/")
-var footstep_sounds_outside = load_audio_folder("res://assets/Outside/")
-
-func load_audio_folder(path: String) -> Array:
-	var files := []
-	var dir := DirAccess.open(path)
+var footstep_paths_inside :Array[String]= [
+	"res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_01.wav",
+	"res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_02.wav",
+	"res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_03.wav",
+	"res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_04.wav",
+	"res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_05.wav",
+	"res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_06.wav",
+	"res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_07.wav",
+	"res://assets/Footsteps_Tile_Walk/Footsteps_Tile_Walk_08.wav"
 	
-	if dir:
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			if file_name.get_extension() == "wav":
-				files.append(load(path + "/" + file_name))
-			file_name = dir.get_next()
-		dir.list_dir_end()
-		
-	return files
+]
+var footstep_paths_outside: Array[String] = [
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_01.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_02.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_03.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_04.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_05.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_06.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_07.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_08.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_09.wav",
+	"res://assets/Outside/Footsteps_DirtyGround_Walk_10.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_01.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_02.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_03.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_04.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_05.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_06.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_07.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_08.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_09.wav",
+	"res://assets/Outside/Footsteps_Gravel_Walk_10.wav",
+	"res://assets/Outside/Footsteps_Leaves_Walk_01.wav",
+	"res://assets/Outside/Footsteps_Leaves_Walk_02.wav",
+	"res://assets/Outside/Footsteps_Leaves_Walk_03.wav",
+	"res://assets/Outside/Footsteps_Leaves_Walk_04.wav",
+	"res://assets/Outside/Footsteps_Leaves_Walk_05.wav",
+	"res://assets/Outside/Footsteps_Leaves_Walk_06.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_01.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_02.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_03.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_04.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_05.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_06.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_07.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_08.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_09.wav",
+	"res://assets/Outside/Footsteps_Mud_Walk_10.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_01.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_02.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_03.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_04.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_05.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_06.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_07.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_08.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_09.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_10.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_11.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_12.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_13.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_14.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_15.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_16.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_17.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_18.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_19.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_20.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_21.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_22.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_23.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_24.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_25.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_26.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_27.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_28.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_29.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_30.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_31.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_32.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_33.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_34.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_35.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_36.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_37.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_38.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_39.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_40.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_41.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_42.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_43.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_44.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_45.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_46.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_47.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_48.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_49.wav",
+	"res://assets/Outside/Footsteps_Walk_Grass_Mono_50.wav"
+]
 
+#func load_audio_folder(path: String) -> Array:
+	#var files := []
+	#var dir := DirAccess.open(path)
+	#
+	#if dir:
+		#dir.list_dir_begin()
+		#var file_name = dir.get_next()
+		#while file_name != "":
+			#if file_name.get_extension() == "wav":
+				#files.append(load(path + "/" + file_name))
+			#file_name = dir.get_next()
+		#dir.list_dir_end()
+		#
+	#return files
+var footstep_sounds_inside: Array[AudioStream] = []
+var footstep_sounds_outside: Array[AudioStream] = []
 # --- CRITICAL FIX: This function now returns the MeshInstance3D directly ---
 # Simplified function: Just returns the variable you assigned in the Inspector
 func get_pulse_quad() -> MeshInstance3D:
@@ -36,7 +134,28 @@ func get_pulse_quad() -> MeshInstance3D:
 		push_error("CRITICAL: You forgot to assign 'Pulse Mesh Ref' in the Character Inspector!")
 	return pulse_mesh_ref
 func _ready():
-	pass
+	var loaded_inside_streams = footstep_paths_inside.map(func(path): return load(path))
+	
+	for stream in loaded_inside_streams:
+		# Only append if the resource successfully loaded as an AudioStream
+		if stream is AudioStream:
+			footstep_sounds_inside.append(stream)
+		else:
+			push_error("Failed to load INSIDE audio stream.")
+
+
+	# 2. Load outside sounds
+	var loaded_outside_streams = footstep_paths_outside.map(func(path): return load(path))
+	
+	for stream in loaded_outside_streams:
+		if stream is AudioStream:
+			footstep_sounds_outside.append(stream)
+		else:
+			push_error("Failed to load OUTSIDE audio stream.")
+	
+	# Clear path arrays (optional, to save memory)
+	footstep_paths_inside.clear()
+	footstep_paths_outside.clear()
 
 # --- Input and rotation ---
 func _unhandled_input(event):
@@ -78,9 +197,18 @@ func _process(delta):
 
 		
 func play_random_footstep():
-	var sfx = footstep_sounds_outside[randi() % footstep_sounds_outside.size()]
-	if environment_type == "inside":
-		sfx = footstep_sounds_inside[randi() % footstep_sounds_inside.size()]
-	footstep_player.stream = sfx
+	var sfx: AudioStream
+	var target_array: Array[AudioStream]
+	
+	if environment_type == "inside" and footstep_sounds_inside.size() > 0:
+		target_array = footstep_sounds_inside
+	elif footstep_sounds_outside.size() > 0:
+		target_array = footstep_sounds_outside
+	else:
+		return # Avoid crash if arrays are empty
+
+	sfx = target_array[randi() % target_array.size()]
+	
+	footstep_player.stream = sfx # Now sfx is a loaded AudioStream object!
 	footstep_player.pitch_scale = randf_range(0.95, 1.05)# slight variation
 	footstep_player.play()

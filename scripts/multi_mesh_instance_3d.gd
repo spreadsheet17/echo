@@ -475,7 +475,7 @@ func walls(row_size, col_size) -> void:
 	var center = (width/2)+max[0]
 	var end = max[3]+outdoor_space/3
 	var other_end = max[2]-outdoor_space/3 # for the exit
-	global_entrance_position = Vector3(center, 2.5, end + steps)
+	global_entrance_position = Vector3(center, 3.5, end - steps)
 	var main_door_width = door_width + me_custom_door_width
 
 	# outer walls, the ones with windows
